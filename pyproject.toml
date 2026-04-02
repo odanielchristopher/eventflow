@@ -1,0 +1,13 @@
+[project]
+name = "eventflow"
+version = "0.1.0"
+description = "EventFlow API with Delta Lake persistence"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "deltalake>=0.24.0",
+    "fastapi>=0.115.0",
+    "pyarrow>=18.0.0",
+    "pydantic>=2.8.0",
+    "uvicorn[standard]>=0.30.0",
+]
