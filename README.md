@@ -50,7 +50,7 @@ src/
 O ponto de entrada atual é `main.py`.
 
 ```bash
-python main.py
+uv run main.py
 ```
 
 Se o ambiente estiver configurado com a virtualenv do projeto, isso inicia a aplicação FastAPI com Uvicorn.
