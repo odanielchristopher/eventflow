@@ -9,3 +9,4 @@ class Activity(DomainModel):
     title: str
     scheduled_at: time
     speaker_id: int
+    event_id: int

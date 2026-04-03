@@ -2,7 +2,7 @@ from src.models.activity import Activity
 from src.models.checkin import CheckIn
 from src.models.domain import DomainModel
 from src.models.event import Event
-from src.models.registration import Registration
+from src.models.subscription import Subscription
 from src.models.speaker import Speaker
 
 __all__ = [
@@ -10,6 +10,6 @@ __all__ = [
     "CheckIn",
     "DomainModel",
     "Event",
-    "Registration",
+    "Subscription",
     "Speaker",
 ]
