@@ -10,6 +10,7 @@ from src.models import CreateEventDto
 from src.usecases.event import CreateEventUseCase
 from src.usecases.event import ListAllEventsUseCase
 from src.usecases.event import ExportCsvUseCase
+from src.usecases.event import ExportCsvZipUseCase
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -28,5 +29,15 @@ def export_csv():
         media_type="text/csv",
         headers={
             "Content-Disposition": "attachment; filename=events.csv"
+        }
+    )
+
+@router.get("/csv/zip")
+def export_csv():
+    return StreamingResponse(
+        ExportCsvZipUseCase().execute(),
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": "attachment; filename=events.zip"
         }
     )
