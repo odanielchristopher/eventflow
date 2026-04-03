@@ -1,21 +1,19 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
+from typing import Literal
 
-from src.models.event import Event
-from src.core.client import DeltaLakeClient
+from src.models import CreateEventDto
+
+from src.usecases.event import CreateEventUseCase
+from src.usecases.event import ListAllEventsUseCase
 
 router = APIRouter(prefix="/events", tags=["events"])
-client = DeltaLakeClient()
-
-@router.get("/health")
-def health_check() -> dict[str, str]:
-    return {"status": "ok", "resource": "events"}
 
 @router.get('')
-def get_all_events(page: int = 1, per_page: int = 10, order: str = 'asc'):
-    return client.events.list(page=page,page_size=per_page, order_by=[("id", order)])
+def get_all_events(page: int = 1, per_page: int = 10):
+    return ListAllEventsUseCase().execute(page, per_page)
 
 @router.post('')
-def create_event(event: Event):
-    return client.events.insert(event)
+def create_event(createEventDto: CreateEventDto):
+    return CreateEventUseCase().execute(createEventDto)

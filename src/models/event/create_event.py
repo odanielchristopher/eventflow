@@ -1,0 +1,15 @@
+from __future__ import annotations
+
+from datetime import date
+from decimal import Decimal
+
+from src.models.base import BaseModel
+
+
+class CreateEventDto(BaseModel):
+    title: str
+    description: str
+    date: date
+    location: str
+    capacity: int
+    sub_price: Decimal

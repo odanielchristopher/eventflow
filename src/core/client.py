@@ -25,3 +25,5 @@ class DeltaLakeClient:
 
     def table_names(self) -> list[str]:
         return ["subscriptions", "events", "speakers", "activities", "checkins"]
+
+delta_lake_cli = DeltaLakeClient()
