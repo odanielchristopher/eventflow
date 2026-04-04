@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable
+from datetime import date, datetime
 from pathlib import Path
+from decimal import Decimal
 from typing import Any, Generic, TypeVar
 
 import pyarrow as pa
@@ -84,7 +86,10 @@ class DeltaLakeRepository(Generic[EntityModelT]):
         if table is None:
             return None
 
-        table.update(predicate=self._predicate_for_id(record_id), updates=payload)
+        table.update(
+            predicate=self._predicate_for_id(record_id),
+            updates={field: self._to_sql_literal(value) for field, value in payload.items()},
+        )
         return self.find_unique(record_id)
 
     def upsert(self, record_id: int, data: EntityModelT | dict[str, Any]) -> EntityModelT:
@@ -281,3 +286,25 @@ class DeltaLakeRepository(Generic[EntityModelT]):
 
     def _predicate_for_id(self, record_id: int) -> str:
         return f"id == {record_id}"
+
+    def _to_sql_literal(self, value: Any) -> str:
+        if isinstance(value, str):
+            escaped = value.replace("'", "''")
+            return f"'{escaped}'"
+
+        if isinstance(value, bool):
+            return "true" if value else "false"
+
+        if isinstance(value, datetime):
+            return f"TIMESTAMP '{value.isoformat(sep=' ')}'"
+
+        if isinstance(value, date):
+            return f"DATE '{value.isoformat()}'"
+
+        if isinstance(value, Decimal):
+            return format(value, "f")
+
+        if isinstance(value, (int, float)):
+            return str(value)
+
+        raise TypeError(f"Unsupported value for SQL update literal: {value!r}")
