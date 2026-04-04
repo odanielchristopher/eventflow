@@ -2,34 +2,61 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Response
 from fastapi.responses import StreamingResponse
-from src.models import CreateEventDto, UpdateEventDto
+from src.models import CreateEventDto, UpdateEventDto, Event, CountEventsResponse
 
-from src.usecases.event import CreateEventUseCase, ListAllEventsUseCase, ExportCsvUseCase, ExportCsvZipUseCase, UpdateEventUseCase, GetEventByIdUseCase, DeleteEventUseCase
+from src.usecases.event import CreateEventUseCase, ListAllEventsUseCase, ExportCsvUseCase, ExportCsvZipUseCase, UpdateEventUseCase, GetEventByIdUseCase, DeleteEventUseCase, CountEventsUseCase
 
 router = APIRouter(prefix="/events", tags=["events"])
 
-@router.get('')
+@router.get('', response_model=list[Event])
 def get_all_events(page: int = 1, per_page: int = 10):
     return ListAllEventsUseCase().execute(page, per_page)
 
-@router.get('/{event_id}')
-def get_all_events(event_id: int):
+@router.get('/count', response_model=CountEventsResponse)
+def count_events():
+    total = CountEventsUseCase().execute()
+
+    return { "total": total }
+
+@router.get('/{event_id}', response_model=Event)
+def get_event_by_id(event_id: int):
     return GetEventByIdUseCase().execute(event_id)
 
-@router.post('')
+@router.post('', response_model=Event, status_code=201)
 def create_event(create_event_dto: CreateEventDto):
     return CreateEventUseCase().execute(create_event_dto)
 
-@router.put('/{event_id}')
+@router.put('/{event_id}', response_model=Event)
 def update_event(event_id: int, update_event_dto: UpdateEventDto):
     return UpdateEventUseCase().execute(event_id, update_event_dto)
 
-@router.delete('/{event_id}', status_code=204)
-def delete_event(event_id: int):
+@router.delete(
+    '/{event_id}',
+    status_code=204,
+    response_model=None,
+    responses={204: {"description": "Event deleted successfully"}},
+)
+def delete_event(event_id: int) -> Response:
     DeleteEventUseCase().execute(event_id)
     return Response(status_code=204)
 
-@router.get("/csv")
+@router.get(
+    "/csv",
+    response_class=StreamingResponse,
+    responses={
+        200: {
+            "content": {
+                "text/csv": {
+                    "schema": {
+                        "type": "string",
+                        "format": "binary",
+                    }
+                }
+            },
+            "description": "CSV export stream",
+        }
+    },
+)
 def export_csv():
     return StreamingResponse(
         ExportCsvUseCase().execute(),
@@ -39,7 +66,23 @@ def export_csv():
         }
     )
 
-@router.get("/csv/zip")
+@router.get(
+    "/csv/zip",
+    response_class=StreamingResponse,
+    responses={
+        200: {
+            "content": {
+                "application/zip": {
+                    "schema": {
+                        "type": "string",
+                        "format": "binary",
+                    }
+                }
+            },
+            "description": "ZIP export stream",
+        }
+    },
+)
 def export_csv_zip():
     return StreamingResponse(
         ExportCsvZipUseCase().execute(),

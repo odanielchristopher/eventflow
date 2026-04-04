@@ -9,6 +9,7 @@ dependencies = [
     "fastapi>=0.115.0",
     "pyarrow>=18.0.0",
     "pydantic>=2.8.0",
+    "scalar-fastapi>=1.8.1",
     "uvicorn[standard]>=0.30.0",
     "zipstream-ng>=1.9.0",
 ]
