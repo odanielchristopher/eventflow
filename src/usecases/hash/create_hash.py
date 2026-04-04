@@ -19,5 +19,5 @@ class CreateHashUseCase:
             h = hashlib.sha256(input_bytes).hexdigest()
         else:
             raise ValueError("Unsupported algorithm") 
-
+    
         return HashInfoDto(hash=h) 
