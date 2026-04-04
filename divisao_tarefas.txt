@@ -1,0 +1,15 @@
+Daniel Christopher:
+- F1
+- F2
+- F3
+- F4
+
+Lucas Ferreira: 
+- F5
+- F6
+- F7
+
+Implementamos juntos a arquitetura inicial do projeto e tomamos a decisão de utilizar um client genérico para a criação e gerenciamento dos arquivos 
+delta lake. Abstraindo a camada de acesso a dados da camada de negócios da aplicação e, dessa forma, permitindo que a aplicação posssa ser facilmente alterada 
+para outras formas de persistência de dados. Além dissso a estrutura do client permite a implementação dos requisitos para as demais entidades do sistema sem 
+muitas dificuldades. 

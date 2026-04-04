@@ -133,17 +133,23 @@ class DeltaLakeRepository(Generic[EntityModelT]):
         where: dict[str, Any] | None = None,
         select: tuple[str, ...] | list[str] | None = None,
         batch_size: int = 1000,
-    ) -> Iterable[list[dict[str, Any]]]:
+    ):
         table = self._load_table()
         if table is None:
-            return []
+            yield from ()
+            return
 
-        columns = list(select) or None
-        scanner = self._scanner(table, filters=where or {}, columns=columns, batch_size=batch_size)
-        batches: list[list[dict[str, Any]]] = []
+        columns = list(select) if select is not None else None
+
+        scanner = self._scanner(
+            table,
+            filters=where or {},
+            columns=columns,
+            batch_size=batch_size
+        )
+
         for batch in scanner.to_batches():
-            batches.append(batch.to_pylist())
-        return batches
+            yield batch.to_pylist()
 
     def _read_rows(
         self,
