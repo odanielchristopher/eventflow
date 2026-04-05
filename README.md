@@ -69,7 +69,7 @@ uv run main.py
 http://localhost:3000/docs
 ```
 
-## Documentação Das PastasAo subir, os logs informam o acesso à documentação em:
+## Documentação Das Pastas
 
 Cada pasta principal tem seu próprio README:
 
