@@ -1,10 +1,20 @@
 from __future__ import annotations
 
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from scalar_fastapi import get_scalar_api_reference
 
 from src.routes import event_router
 from src.routes import hash_router
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger = logging.getLogger("uvicorn.error")
+    logger.info("Documentacao disponivel em http://localhost:3000/docs")
+    yield
 
 
 def create_app() -> FastAPI:
@@ -14,6 +24,7 @@ def create_app() -> FastAPI:
         docs_url=None,
         redoc_url=None,
         openapi_url="/openapi.json",
+        lifespan=lifespan,
     )
     app.include_router(event_router)
     app.include_router(hash_router)

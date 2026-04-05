@@ -10,7 +10,6 @@ O projeto é organizado em torno de um client no estilo Prisma, que expõe o ace
 - `DeltaLakeRepository` executa as operações reais no Delta Lake.
 - `routes/` expõe a API HTTP.
 - `usecases/` concentra as regras de negócio.
-- `repositories/` concentra os repositórios da aplicação que usam o core.
 
 ```text
 src/
@@ -22,8 +21,6 @@ src/
     tabelas Delta Lake e arquivos .seq
   models/
     entidades de domínio com Pydantic
-  repositories/
-    repositórios da aplicação
   routes/
     rotas do FastAPI
   usecases/
@@ -34,13 +31,13 @@ src/
 
 1. `routes` recebem a requisição HTTP.
 2. `usecases` aplicam as regras de negócio e orquestram o fluxo.
-3. `repositories` conversam com o `DeltaLakeClient`.
-4. `core` lê e grava no Delta Lake.
-5. `data` armazena os arquivos físicos.
+3. `core` lê e grava no Delta Lake.
+4. `data` armazena os arquivos físicos.
 
 ## API E PAGINAÇÃO
 
 - A documentação da API fica em `/docs` com Scalar.
+- No startup, a aplicação informa no log o acesso à documentação.
 - `GET /events` continua aceitando `page` e `per_page`.
 - Internamente, a listagem é executada em blocos pequenos para evitar carregar tudo na RAM de uma vez.
 - Exportações grandes usam streaming.
@@ -50,13 +47,13 @@ src/
 Para popular o minibanco com dados realistas de eventos:
 
 ```bash
-uv run python scripts/populate_events.py --count 1000
+uv run scripts/populate_events.py --count 1000
 ```
 
 Você também pode fixar a geração com uma seed:
 
 ```bash
-uv run python scripts/populate_events.py --count 1000 --seed 42
+uv run scripts/populate_events.py --count 1000 --seed 42
 ```
 
 ## Observações de Desenvolvimento
@@ -75,6 +72,12 @@ uv run main.py
 ```
 
 Se o ambiente estiver configurado com a virtualenv do projeto, isso inicia a aplicação FastAPI com Uvicorn.
+
+Ao subir, os logs informam o acesso à documentação em:
+
+```text
+/docs
+```
 
 ## Documentação Das Pastas
 
