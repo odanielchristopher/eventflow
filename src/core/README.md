@@ -4,7 +4,7 @@ Esta pasta contém a infraestrutura de persistência usada por todo o projeto.
 
 ## Objetivo
 
-`core/` deve ser genérica e focada nos mecanismos do Delta Lake, sem regras de negócio.
+`core/` é genérica e focada nos mecanismos do Delta Lake, sem regras de negócio.
 
 ## Arquivos
 
@@ -22,6 +22,3 @@ Esta pasta contém a infraestrutura de persistência usada por todo o projeto.
   - Gerencia os arquivos `.seq` para IDs auto incrementais.
   - Garante que os diretórios de dados existam.
 
-## Regra Importante
-
-Não coloque regras de aplicação aqui. Esta pasta deve saber apenas como ler e gravar dados no Delta Lake com segurança.

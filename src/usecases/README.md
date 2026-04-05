@@ -15,7 +15,3 @@ Os use cases orquestram o fluxo entre rotas, repositórios e regras de validaç�
 - exportar relatório ZIP
 - calcular hashes
 - executar vacuum em versões antigas do Delta Lake
-
-## Regra Importante
-
-Os use cases devem conhecer a regra de negócio, mas não os detalhes da camada HTTP.

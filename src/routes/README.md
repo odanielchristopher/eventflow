@@ -13,12 +13,6 @@ As rotas expõem os endpoints HTTP e conectam as requisições aos use cases.
 - chamar o use case correto
 - retornar as respostas
 
-## O que elas não devem fazer
-
-- implementar regras de negócio
-- acessar o Delta Lake diretamente
-- concentrar lógica pesada
-
 ## Exemplo
 
 - `event.py` define os endpoints relacionados a eventos.
