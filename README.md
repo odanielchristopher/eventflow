@@ -38,6 +38,27 @@ src/
 4. `core` lê e grava no Delta Lake.
 5. `data` armazena os arquivos físicos.
 
+## API E PAGINAÇÃO
+
+- A documentação da API fica em `/docs` com Scalar.
+- `GET /events` continua aceitando `page` e `per_page`.
+- Internamente, a listagem é executada em blocos pequenos para evitar carregar tudo na RAM de uma vez.
+- Exportações grandes usam streaming.
+
+## Seed De Dados
+
+Para popular o minibanco com dados realistas de eventos:
+
+```bash
+uv run python scripts/populate_events.py --count 1000
+```
+
+Você também pode fixar a geração com uma seed:
+
+```bash
+uv run python scripts/populate_events.py --count 1000 --seed 42
+```
+
 ## Observações de Desenvolvimento
 
 - Mantenha os identificadores do código em inglês.

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from collections import defaultdict
-from collections.abc import Iterable
 from datetime import date, datetime
 from pathlib import Path
 from decimal import Decimal
@@ -19,6 +17,7 @@ EntityModelT = TypeVar("EntityModelT", bound=BaseModel)
 
 class DeltaLakeRepository(Generic[EntityModelT]):
     def __init__(self, base_path: str | Path, table_name: str, model_cls: type[EntityModelT]) -> None:
+        # Guarda a configuração da tabela e prepara a pasta física do Delta Lake.
         self._base_path = Path(base_path)
         self._table_name = table_name
         self._model_cls = model_cls
@@ -27,6 +26,7 @@ class DeltaLakeRepository(Generic[EntityModelT]):
         ensure_directory(self._table_dir)
 
     def create(self, data: EntityModelT | dict[str, Any]) -> EntityModelT:
+        # Normaliza o payload, gera o id e grava a linha como um novo commit.
         payload = self._normalize_payload(data)
         if payload.get("id") is None:
             payload["id"] = next_sequence(self._seq_file)
@@ -39,6 +39,7 @@ class DeltaLakeRepository(Generic[EntityModelT]):
     insert = create
 
     def find_unique(self, record_id: int) -> EntityModelT | None:
+        # Busca um único registro pelo id.
         records = self._read_rows(filters={"id": record_id}, limit=1)
         if not records:
             return None
@@ -51,24 +52,18 @@ class DeltaLakeRepository(Generic[EntityModelT]):
         *,
         where: dict[str, Any] | None = None,
         select: tuple[str, ...] | list[str] | None = None,
-        order_by: list[tuple[str, str]] | None = None,
-        group_by: tuple[str, ...] | list[str] | None = None,
-        page: int = 1,
-        page_size: int = 20,
+        limit: int = 20,
+        offset: int = 0,
     ) -> list[Any]:
+        # Mantém a interface pública com paginação simples, mas lê em lotes pequenos.
         rows = self._read_rows(
             filters=where or {},
             selected_fields=tuple(select or ()),
-            order_by=order_by or [],
-            group_by=tuple(group_by or ()),
-            limit=page_size,
-            offset=max(page - 1, 0) * page_size,
+            limit=limit,
+            offset=max(offset, 0),
         )
 
         if select:
-            return rows
-
-        if group_by:
             return rows
 
         return [self._to_model(row) for row in rows]
@@ -76,6 +71,7 @@ class DeltaLakeRepository(Generic[EntityModelT]):
     list = find_many
 
     def update(self, record_id: int, data: EntityModelT | dict[str, Any]) -> EntityModelT | None:
+        # Atualiza um registro existente e devolve o estado já recarregado.
         if self.find_unique(record_id) is None:
             return None
 
@@ -93,6 +89,7 @@ class DeltaLakeRepository(Generic[EntityModelT]):
         return self.find_unique(record_id)
 
     def upsert(self, record_id: int, data: EntityModelT | dict[str, Any]) -> EntityModelT:
+        # Se o id já existir, faz update; caso contrário, cria um novo registro.
         existing = self.find_unique(record_id)
         if existing is None:
             payload = self._normalize_payload(data)
@@ -103,6 +100,7 @@ class DeltaLakeRepository(Generic[EntityModelT]):
         return updated or existing
 
     def delete(self, record_id: int) -> bool:
+        # Remove um registro somente quando ele já existe na tabela.
         if self.find_unique(record_id) is None:
             return False
 
@@ -114,6 +112,7 @@ class DeltaLakeRepository(Generic[EntityModelT]):
         return True
 
     def count(self, where: dict[str, Any] | None = None) -> int:
+        # Conta registros direto no dataset, sem montar a lista inteira em memória.
         table = self._load_table()
         if table is None:
             return 0
@@ -123,6 +122,7 @@ class DeltaLakeRepository(Generic[EntityModelT]):
         return int(dataset.count_rows(filter=filter_expr))
 
     def vacuum(self) -> list[str]:
+        # Limpa arquivos antigos do Delta Lake, com fallback para compatibilidade.
         table = self._load_table()
         if table is None:
             return []
@@ -139,6 +139,7 @@ class DeltaLakeRepository(Generic[EntityModelT]):
         select: tuple[str, ...] | list[str] | None = None,
         batch_size: int = 1000,
     ):
+        # Exporta em lotes para permitir streaming sem carregar tudo na RAM.
         table = self._load_table()
         if table is None:
             yield from ()
@@ -161,79 +162,42 @@ class DeltaLakeRepository(Generic[EntityModelT]):
         *,
         filters: dict[str, Any],
         selected_fields: tuple[str, ...] = (),
-        order_by: list[tuple[str, str]] | None = None,
-        group_by: tuple[str, ...] = (),
         limit: int | None = None,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
+        # Faz a leitura base do dataset usando lotes do próprio scanner.
+        # Assim, o código lê só a janela pedida sem montar a tabela inteira em RAM.
         table = self._load_table()
         if table is None:
             return []
 
-        use_full_scan = bool(order_by or group_by)
-        rows = self._scan_rows(
-            table,
-            filters=filters,
-            selected_fields=selected_fields,
-            limit=None if use_full_scan else limit,
-            offset=0 if use_full_scan else offset,
-        )
-
-        if order_by:
-            for field, direction in reversed(order_by):
-                reverse = direction.lower() == "desc"
-                rows.sort(key=lambda item: item.get(field), reverse=reverse)
-
-        if group_by:
-            grouped: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
-            for row in rows:
-                key = tuple(row.get(field) for field in group_by)
-                grouped[key].append(row)
-
-            grouped_rows: list[dict[str, Any]] = []
-            for key, items in grouped.items():
-                grouped_rows.append(
-                    {
-                        "group": {field: key[index] for index, field in enumerate(group_by)},
-                        "items": items,
-                        "count": len(items),
-                    }
-                )
-            rows = grouped_rows
-
-        if use_full_scan and (offset or limit is not None):
-            rows = rows[offset : offset + limit if limit is not None else None]
-
-        return rows
-
-    def _scan_rows(
-        self,
-        table: DeltaTable,
-        *,
-        filters: dict[str, Any],
-        selected_fields: tuple[str, ...],
-        limit: int | None,
-        offset: int,
-    ) -> list[dict[str, Any]]:
         columns = list(selected_fields) or None
         scanner = self._scanner(
             table,
             filters=filters,
             columns=columns,
-            batch_size=max(limit or 1000, 1),
+            batch_size=max(limit or 1, 1),
         )
+
         rows: list[dict[str, Any]] = []
         skipped = 0
+        page_size = max(limit or 1, 1)
 
         for batch in scanner.to_batches():
-            for row in batch.to_pylist():
-                if skipped < offset:
-                    skipped += 1
-                    continue
-                rows.append(row)
-                if limit is not None and len(rows) >= limit:
-                    return rows
-        return rows
+            batch_rows = batch.to_pylist()
+
+            if skipped + len(batch_rows) <= offset:
+                skipped += len(batch_rows)
+                continue
+
+            start = max(offset - skipped, 0)
+            rows.extend(batch_rows[start:])
+            skipped += len(batch_rows)
+
+            if len(rows) >= page_size:
+                return rows[:page_size]
+
+        return rows[:page_size]
 
     def _scanner(
         self,
@@ -243,22 +207,53 @@ class DeltaLakeRepository(Generic[EntityModelT]):
         columns: list[str] | None,
         batch_size: int,
     ):
+        # Cria o scanner do dataset com filtros e tamanho de lote definidos.
         dataset = table.to_pyarrow_dataset()
         filter_expr = self._build_filter_expression(filters)
         return dataset.scanner(columns=columns, filter=filter_expr, batch_size=batch_size)
 
     def _build_filter_expression(self, filters: dict[str, Any]):
+        # Combina os filtros com AND para o dataset poder aplicar pushdown.
         expression = None
         for field_name, value in filters.items():
-            condition = ds.field(field_name) == value
+            condition = self._build_field_condition(field_name, value)
             expression = condition if expression is None else expression & condition
         return expression
 
+    def _build_field_condition(self, field_name: str, value: Any):
+        # Converte um filtro simples ou composto para uma expressão do PyArrow.
+        field = ds.field(field_name)
+
+        if isinstance(value, dict):
+            condition = None
+            for operator, operand in value.items():
+                if operator == "eq":
+                    expr = field == operand
+                elif operator == "ne":
+                    expr = field != operand
+                elif operator == "gt":
+                    expr = field > operand
+                elif operator == "gte":
+                    expr = field >= operand
+                elif operator == "lt":
+                    expr = field < operand
+                elif operator == "lte":
+                    expr = field <= operand
+                else:
+                    raise ValueError(f"Unsupported filter operator: {operator}")
+
+                condition = expr if condition is None else condition & expr
+            return condition
+
+        return field == value
+
     def _append_rows(self, rows: list[dict[str, Any]]) -> None:
+        # Cada append vira um novo commit do Delta Lake.
         table = pa.Table.from_pylist(rows)
         write_deltalake(self._table_dir.as_posix(), table, mode="append")
 
     def _load_table(self) -> DeltaTable | None:
+        # Abre a tabela Delta no diretório físico, se ela já existir.
         if not self._table_dir.exists():
             return None
         try:
@@ -267,14 +262,17 @@ class DeltaLakeRepository(Generic[EntityModelT]):
             return None
 
     def _to_model(self, payload: dict[str, Any]) -> EntityModelT:
+        # Valida e converte o payload bruto para o model do domínio.
         return self._model_cls.model_validate(payload)
 
     def _normalize_payload(self, data: EntityModelT | dict[str, Any]) -> dict[str, Any]:
+        # Aceita model Pydantic ou dict puro e devolve um payload serializável.
         if isinstance(data, BaseModel):
             return data.model_dump(exclude_none=True)
         return dict(data)
 
     def _sync_sequence(self, record_id: int) -> None:
+        # Mantém o arquivo de sequência sempre alinhado com o maior id gravado.
         current = 0
         if self._seq_file.exists():
             try:
@@ -285,9 +283,11 @@ class DeltaLakeRepository(Generic[EntityModelT]):
             self._seq_file.write_text(f"{record_id}\n", encoding="utf-8")
 
     def _predicate_for_id(self, record_id: int) -> str:
+        # Monta a condição SQL usada para localizar o registro pelo id.
         return f"id == {record_id}"
 
     def _to_sql_literal(self, value: Any) -> str:
+        # Converte valores Python para literais SQL aceitos pelo update do Delta Lake.
         if isinstance(value, str):
             escaped = value.replace("'", "''")
             return f"'{escaped}'"

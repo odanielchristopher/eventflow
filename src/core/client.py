@@ -17,13 +17,6 @@ class DeltaLakeClient:
         self.activities = DeltaLakeRepository(self.base_path, "activities", Activity)
         self.checkins = DeltaLakeRepository(self.base_path, "checkins", CheckIn)
 
-        self.subscription = self.subscriptions
         self.event = self.events
-        self.speaker = self.speakers
-        self.activity = self.activities
-        self.checkin = self.checkins
-
-    def table_names(self) -> list[str]:
-        return ["subscriptions", "events", "speakers", "activities", "checkins"]
 
 delta_lake_cli = DeltaLakeClient()

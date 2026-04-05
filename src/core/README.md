@@ -15,6 +15,7 @@ Esta pasta contém a infraestrutura de persistência usada por todo o projeto.
 - `repository.py`
   - Implementa o repositório genérico do Delta Lake.
   - Oferece criação, busca, atualização, exclusão, contagem, vacuum e exportação em lotes.
+  - A listagem usa leitura em blocos pequenos e paginação por `limit` e `offset`, sem carregar a tabela inteira na memória.
 
 - `storage.py`
   - Cuida dos caminhos do sistema de arquivos.
