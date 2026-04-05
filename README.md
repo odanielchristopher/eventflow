@@ -76,7 +76,7 @@ Se o ambiente estiver configurado com a virtualenv do projeto, isso inicia a apl
 Ao subir, os logs informam o acesso à documentação em:
 
 ```text
-/docs
+http://localhost:3000/docs
 ```
 
 ## Documentação Das Pastas
@@ -85,7 +85,6 @@ Cada pasta principal tem seu próprio README:
 
 - [core](src/core/README.md)
 - [models](src/models/README.md)
-- [repositories](src/repositories/README.md)
 - [routes](src/routes/README.md)
 - [usecases](src/usecases/README.md)
 - [data](src/data/README.md)
