@@ -10,5 +10,5 @@ from src.usecases.hash import CreateHashUseCase
 router = APIRouter(prefix="/hashes", tags=["hashes"])
 
 @router.post('')
-def create_event(dto: CreateHashDto):
+def apply_hash(dto: CreateHashDto):
     return CreateHashUseCase().execute(dto)
