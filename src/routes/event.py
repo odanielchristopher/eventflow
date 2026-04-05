@@ -18,27 +18,9 @@ def count_events():
 
     return { "total": total }
 
-@router.get('/{event_id}', response_model=Event)
-def get_event_by_id(event_id: int):
-    return GetEventByIdUseCase().execute(event_id)
-
 @router.post('', response_model=Event, status_code=201)
 def create_event(create_event_dto: CreateEventDto):
     return CreateEventUseCase().execute(create_event_dto)
-
-@router.put('/{event_id}', response_model=Event)
-def update_event(event_id: int, update_event_dto: UpdateEventDto):
-    return UpdateEventUseCase().execute(event_id, update_event_dto)
-
-@router.delete(
-    '/{event_id}',
-    status_code=204,
-    response_model=None,
-    responses={204: {"description": "Event deleted successfully"}},
-)
-def delete_event(event_id: int) -> Response:
-    DeleteEventUseCase().execute(event_id)
-    return Response(status_code=204)
 
 @router.get(
     "/csv",
@@ -91,3 +73,21 @@ def export_csv_zip():
             "Content-Disposition": "attachment; filename=events.zip"
         }
     )
+
+@router.get('/{event_id}', response_model=Event)
+def get_event_by_id(event_id: int):
+    return GetEventByIdUseCase().execute(event_id)
+
+@router.put('/{event_id}', response_model=Event)
+def update_event(event_id: int, update_event_dto: UpdateEventDto):
+    return UpdateEventUseCase().execute(event_id, update_event_dto)
+
+@router.delete(
+    '/{event_id}',
+    status_code=204,
+    response_model=None,
+    responses={204: {"description": "Event deleted successfully"}},
+)
+def delete_event(event_id: int) -> Response:
+    DeleteEventUseCase().execute(event_id)
+    return Response(status_code=204)
