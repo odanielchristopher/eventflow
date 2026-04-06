@@ -19,7 +19,7 @@ def count_events():
     return { "total": total }
 
 @router.get('/vacuum', status_code=204, response_model=None)
-def appy_vacuum():
+def apply_vacuum():
     return ApplyVaccumOnEventDataUseCase().execute()
 
 @router.post('', response_model=Event, status_code=201)
