@@ -26,6 +26,3 @@ Os models definem o formato dos dados usados em toda a aplicação.
 - `checkin.py`
   - Entidade de check-in.
 
-## Regra Importante
-
-Essas classes devem ficar focadas em validação e estrutura dos dados. Não coloque lógica de persistência aqui.

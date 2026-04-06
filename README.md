@@ -38,7 +38,7 @@ src/
 
 - A documentação da API fica em `/docs` com Scalar.
 - No startup, a aplicação informa no log o acesso à documentação.
-- `GET /events` continua aceitando `page` e `per_page`.
+- `GET /events` aceita `page` e `per_page`.
 - Internamente, a listagem é executada em blocos pequenos para evitar carregar tudo na RAM de uma vez.
 - Exportações grandes usam streaming.
 
@@ -56,13 +56,6 @@ Você também pode fixar a geração com uma seed:
 uv run scripts/populate_events.py --count 1000 --seed 42
 ```
 
-## Observações de Desenvolvimento
-
-- Mantenha os identificadores do código em inglês.
-- Não coloque regra de negócio nas rotas do FastAPI.
-- Não carregue a tabela inteira na memória.
-- Prefira leitura em lotes ou streaming para paginação e exportação.
-
 ## Como Executar
 
 O ponto de entrada atual é `main.py`.
@@ -70,10 +63,7 @@ O ponto de entrada atual é `main.py`.
 ```bash
 uv run main.py
 ```
-
-Se o ambiente estiver configurado com a virtualenv do projeto, isso inicia a aplicação FastAPI com Uvicorn.
-
-Ao subir, os logs informam o acesso à documentação em:
+# Documentação dos endpoints
 
 ```text
 http://localhost:3000/docs
