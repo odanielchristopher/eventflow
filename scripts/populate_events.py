@@ -67,8 +67,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    if args.count < 1000:
-        raise SystemExit("Use at least 1000 registros.")
+    if args.count < 1:
+        raise SystemExit("Use at least 1 registros.")
 
     random.seed(args.seed)
     fake = Faker("pt_BR")
