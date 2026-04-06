@@ -6,8 +6,10 @@ from src.usecases.event.count_events import CountEventsUseCase
 from src.usecases.event.list_all_events import ListAllEventsUseCase
 from src.usecases.event.export_csv import ExportCsvUseCase
 from src.usecases.event.export_csv_zip import  ExportCsvZipUseCase
+from src.usecases.event.apply_vacuum_on_event_data import  ApplyVaccumOnEventDataUseCase
 
 __all__ = [
+    "ApplyVaccumOnEventDataUseCase",
     "CreateEventUseCase",
     "ListAllEventsUseCase",
     "ExportCsvUseCase",

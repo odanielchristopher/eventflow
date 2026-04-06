@@ -4,7 +4,7 @@ from fastapi import APIRouter, Response
 from fastapi.responses import StreamingResponse
 from src.models import CreateEventDto, UpdateEventDto, Event, CountEventsResponse
 
-from src.usecases.event import CreateEventUseCase, ListAllEventsUseCase, ExportCsvUseCase, ExportCsvZipUseCase, UpdateEventUseCase, GetEventByIdUseCase, DeleteEventUseCase, CountEventsUseCase
+from src.usecases.event import CreateEventUseCase, ListAllEventsUseCase, ExportCsvUseCase, ExportCsvZipUseCase, UpdateEventUseCase, GetEventByIdUseCase, DeleteEventUseCase, CountEventsUseCase, ApplyVaccumOnEventDataUseCase
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -17,6 +17,10 @@ def count_events():
     total = CountEventsUseCase().execute()
 
     return { "total": total }
+
+@router.get('/vacuum', status_code=204, response_model=None)
+def appy_vacuum():
+    return ApplyVaccumOnEventDataUseCase().execute()
 
 @router.post('', response_model=Event, status_code=201)
 def create_event(create_event_dto: CreateEventDto):
