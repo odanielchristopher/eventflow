@@ -5,10 +5,9 @@ from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
+from sqlalchemy.engine import make_url
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -47,6 +46,17 @@ class Settings(BaseSettings):
     @property
     def is_postgres(self) -> bool:
         return self.database_url.startswith("postgresql")
+
+    @property
+    def resolved_sqlite_database_path(self) -> Path | None:
+        if not self.is_sqlite:
+            return None
+
+        database = make_url(self.database_url).database
+        if database is None or database == ":memory:":
+            return None
+
+        return (BASE_DIR / database).resolve()
 
 
 @lru_cache(maxsize=1)

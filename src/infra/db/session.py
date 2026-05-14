@@ -6,8 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from src.core.config import get_settings
 
-
 settings = get_settings()
+
+sqlite_database_path = settings.resolved_sqlite_database_path
+if sqlite_database_path is not None:
+    sqlite_database_path.parent.mkdir(parents=True, exist_ok=True)
 
 engine = create_async_engine(
     settings.database_url,
@@ -22,7 +25,6 @@ session_factory = async_sessionmaker(
     autoflush=False,
     expire_on_commit=False,
 )
-
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with session_factory() as session:
