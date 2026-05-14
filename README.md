@@ -1,6 +1,8 @@
 # EventFlow API
 
-A EventFlow API é um projeto FastAPI em transição para o stack pedido no trabalho: `SQLModel`, `Alembic` e persistência relacional assíncrona com suporte a SQLite e PostgreSQL.
+A EventFlow API é um projeto FastAPI para gerenciamento de eventos, inscrições, atividades, palestrantes, check-ins e documentos.
+
+O projeto está sendo adaptado para o stack pedido no trabalho: `SQLModel`, `Alembic` e persistência relacional assíncrona com suporte a SQLite e PostgreSQL.
 
 ## Stack Atual De Dependências
 
@@ -12,50 +14,98 @@ A EventFlow API é um projeto FastAPI em transição para o stack pedido no trab
 - `fastapi-pagination`
 - `asyncpg` para PostgreSQL
 - `aiosqlite` para SQLite
+- `python-dotenv` para configuração via `.env`
+- `python-multipart` para upload de arquivos
 
-## Estrutura Atual
+## Arquitetura Definida
 
-O projeto é organizado em torno de um client no estilo Prisma, que expõe o acesso aos repositórios de cada entidade do domínio.
-
-- `DeltaLakeClient` atua como ponto de entrada da persistência.
-- `DeltaLakeRepository` executa as operações reais no Delta Lake.
-- `routes/` expõe a API HTTP.
-- `usecases/` concentra as regras de negócio.
+A arquitetura escolhida para a próxima etapa do projeto é esta:
 
 ```text
 src/
   core/
-    DeltaLakeClient
-    DeltaLakeRepository
-    helpers de armazenamento
-  data/
-    tabelas Delta Lake e arquivos .seq
+  infra/
+    db/
+    repositories/
   models/
-    entidades de domínio com Pydantic
+    event/
+      entity.py
+      schemas.py
+    document/
+      entity.py
+      schemas.py
+    speaker/
+      entity.py
+      schemas.py
+    activity/
+      entity.py
+      schemas.py
+    subscription/
+      entity.py
+      schemas.py
+    checkin/
+      entity.py
+      schemas.py
+  dependencies/
   routes/
-    rotas do FastAPI
   usecases/
-    regras de negócio e fluxos
 ```
 
-## Como As Camadas Se Conectam
+## Responsabilidades Das Camadas
 
-1. `routes` recebem a requisição HTTP.
-2. `usecases` aplicam as regras de negócio e orquestram o fluxo.
-3. `core` lê e grava no Delta Lake.
-4. `data` armazena os arquivos físicos.
+- `core/` concentra configuração compartilhada, constantes, exceptions e utilitários centrais.
+- `infra/db/` concentra engine assíncrona, sessions, configuração do banco e integração com SQLModel/Alembic.
+- `infra/repositories/` implementa os repositórios concretos que acessam o banco.
+- `models/` organiza o domínio por entidade.
+- `entity.py` define os modelos de persistência com `SQLModel`.
+- `schemas.py` define os contratos da API, como create, update, read e filtros.
+- `dependencies/` usa o mecanismo nativo de dependências do FastAPI para montar sessão, repositórios e use cases.
+- `routes/` expõe os endpoints HTTP.
+- `usecases/` concentra as regras de negócio e não deve conhecer detalhes do banco usado.
+
+## Injeção De Dependências
+
+O projeto vai utilizar a forma nativa do FastAPI para composição de dependências com `Depends(...)`.
+
+Com isso:
+
+- as `routes` recebem as dependências prontas;
+- as `dependencies` montam `session -> repository -> usecase`;
+- os `usecases` dependem de abstrações e não do banco diretamente;
+- os `repositories` encapsulam o acesso ao `SQLModel` e ao `AsyncSession`.
+
+## Domínio Do Projeto
+
+As entidades principais do domínio são:
+
+- `Event`
+- `Document`
+- `Speaker`
+- `Activity`
+- `Subscription`
+- `CheckIn`
+
+O relacionamento com documentos será modelado para atender ao requisito do trabalho. Um evento poderá possuir um ou mais documentos associados, incluindo banners e outros arquivos relevantes.
 
 ## API E PAGINAÇÃO
 
-- A documentação da API fica em `/docs` com Scalar.
-- No startup, a aplicação informa no log o acesso à documentação.
-- `GET /events` aceita `page` e `per_page`.
-- Internamente, a listagem é executada em blocos pequenos para evitar carregar tudo na RAM de uma vez.
-- Exportações grandes usam streaming.
+- A documentação da API fica em `/docs`.
+- O projeto utilizará paginação com `fastapi-pagination`.
+- As consultas devem evitar carregar tabelas inteiras.
+- As entidades com relacionamentos serão consultadas com eager loading.
+- Os uploads de arquivos serão salvos no sistema de arquivos local da aplicação.
 
 ## Seed De Dados
 
-Para popular o minibanco com dados realistas de eventos:
+O projeto já possui um script inicial de carga em:
+
+```text
+scripts/populate_events.py
+```
+
+Ele será adaptado para o novo modelo relacional e deverá povoar SQLite ou PostgreSQL com dados realistas.
+
+Exemplo atual de execução:
 
 ```bash
 uv run scripts/populate_events.py --count 1000
@@ -100,18 +150,21 @@ O ponto de entrada atual é `main.py`.
 ```bash
 uv run main.py
 ```
-# Documentação dos endpoints
+
+## Documentação Dos Endpoints
 
 ```text
 http://localhost:3000/docs
 ```
 
-## Documentação Das Pastas
+## Estado Atual Da Migração
 
-Cada pasta principal tem seu próprio README:
+- As dependências do novo stack já foram adicionadas.
+- O `uv.lock` já foi atualizado.
+- O ambiente local com PostgreSQL via Docker já foi configurado.
+- A arquitetura alvo do projeto já foi definida.
+- A próxima etapa é refatorar a persistência atual para `SQLModel` assíncrono com `Alembic`.
 
-- [core](src/core/README.md)
-- [models](src/models/README.md)
-- [routes](src/routes/README.md)
-- [usecases](src/usecases/README.md)
-- [data](src/data/README.md)
+## Observação Sobre O Legado
+
+O repositório ainda contém a implementação anterior baseada em Delta Lake. Essa estrutura será substituída gradualmente pela nova arquitetura relacional definida acima.
