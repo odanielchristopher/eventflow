@@ -1,0 +1,47 @@
+erDiagram
+    EVENT {
+        int id PK
+        string title
+        string description
+        string banner_img_url
+        date date
+        string location
+        int capacity
+        decimal sub_price
+    }
+
+    ACTIVITY {
+        int id PK
+        string title
+        time scheduled_at
+        int event_id FK
+    }
+
+    SPEAKER {
+        int id PK
+        string name
+        string specialty
+        string bio
+    }
+
+    CHECKIN {
+        int id PK
+        datetime timestamp
+        string access_point
+        int registration_id FK
+    }
+
+    SUBSCRIPTION {
+        int id PK
+        string name
+        string email
+        date registered_at
+    }
+
+    EVENT ||--o{ ACTIVITY : contains
+    EVENT ||--o{ SUBSCRIPTION : contains
+
+    ACTIVITY }o--|{ SPEAKER : presented_by
+
+    SUBSCRIPTION ||--o| CHECKIN : has      
+
