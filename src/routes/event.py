@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Response
 from fastapi.responses import StreamingResponse
-from src.models import CreateEventDto, UpdateEventDto, Event, CountEventsResponse
+from src.models import CreateEventDto, UpdateEventDto, Event, CountEventsResponse, PaginatedData
 
 from src.usecases.event import CreateEventUseCase, ListAllEventsUseCase, ExportCsvUseCase, ExportCsvZipUseCase, UpdateEventUseCase, GetEventByIdUseCase, DeleteEventUseCase, CountEventsUseCase, ApplyVaccumOnEventDataUseCase
 
 router = APIRouter(prefix="/events", tags=["events"])
 
-@router.get('', response_model=list[Event])
+@router.get('', response_model=PaginatedData[Event])
 def get_all_events(page: int = 1, per_page: int = 10):
     return ListAllEventsUseCase().execute(page, per_page)
 
