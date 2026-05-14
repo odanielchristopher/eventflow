@@ -1,6 +1,17 @@
 # EventFlow API
 
-A EventFlow API é um projeto FastAPI que usa Delta Lake como camada de persistência para dados de inscrições, eventos e credenciamento.
+A EventFlow API é um projeto FastAPI em transição para o stack pedido no trabalho: `SQLModel`, `Alembic` e persistência relacional assíncrona com suporte a SQLite e PostgreSQL.
+
+## Stack Atual De Dependências
+
+- `FastAPI`
+- `SQLModel`
+- `SQLAlchemy` assíncrono
+- `Alembic`
+- `Pydantic`
+- `fastapi-pagination`
+- `asyncpg` para PostgreSQL
+- `aiosqlite` para SQLite
 
 ## Estrutura Atual
 
@@ -55,6 +66,32 @@ Você também pode fixar a geração com uma seed:
 ```bash
 uv run scripts/populate_events.py --count 1000 --seed 42
 ```
+
+## Ambiente Local
+
+Copie o arquivo de exemplo de ambiente:
+
+```bash
+cp .env.example .env
+```
+
+O projeto já deixa duas URLs preparadas no `.env`:
+
+- `sqlite+aiosqlite:///./sqlite_data/eventflow.db` para desenvolvimento local com SQLite
+- `postgresql+asyncpg://eventflow:eventflow@localhost:5432/eventflow` para PostgreSQL via Docker
+
+Observação: o `SQLite` nao roda como um servico no `docker-compose`, porque ele e apenas um arquivo local. Por isso o `docker-compose.yml` sobe apenas o `PostgreSQL` e o `Adminer`.
+
+## Subir O PostgreSQL Local
+
+```bash
+docker compose up -d
+```
+
+Servicos disponiveis:
+
+- PostgreSQL em `localhost:5432`
+- Adminer em `http://localhost:8080`
 
 ## Como Executar
 

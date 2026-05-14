@@ -8,6 +8,11 @@ wheels/
 
 # Virtual environments
 .venv
+.env
 
 #Data files
 /src/data
+
+# Local database and container files
+postgres_data/
+sqlite_data/
