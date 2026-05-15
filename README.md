@@ -130,6 +130,10 @@ O projeto já deixa duas URLs preparadas no `.env`:
 - `sqlite+aiosqlite:///./sqlite_data/eventflow.db` para desenvolvimento local com SQLite
 - `postgresql+asyncpg://eventflow:eventflow@localhost:5432/eventflow` para PostgreSQL via Docker
 
+Os logs SQL do `SQLModel/SQLAlchemy` ficam habilitados por exigência do trabalho e podem ser controlados por:
+
+- `SQL_ECHO=true`
+
 Observação: o `SQLite` nao roda como um servico no `docker-compose`, porque ele e apenas um arquivo local. Por isso o `docker-compose.yml` sobe apenas o `PostgreSQL` e o `Adminer`.
 
 ## Subir O PostgreSQL Local

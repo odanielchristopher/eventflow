@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     app_env: str = Field(default="development", alias="APP_ENV")
     app_host: str = Field(default="0.0.0.0", alias="APP_HOST")
     app_port: int = Field(default=3000, alias="APP_PORT")
+    sql_echo: bool = Field(default=True, alias="SQL_ECHO")
 
     database_url: str = Field(
         default="sqlite+aiosqlite:///./sqlite_data/eventflow.db",

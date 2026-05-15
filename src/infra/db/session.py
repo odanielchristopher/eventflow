@@ -14,7 +14,7 @@ if sqlite_database_path is not None:
 
 engine = create_async_engine(
     settings.database_url,
-    echo=False,
+    echo=settings.sql_echo,
     future=True,
     pool_pre_ping=True,
 )
