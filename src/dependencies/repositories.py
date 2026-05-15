@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.dependencies.db import get_session
 from src.infra.repositories.document_repository import SqlModelDocumentRepository
 from src.infra.repositories.event_repository import SqlModelEventRepository
+from src.infra.repositories.subscription_repository import SqlModelSubscriptionRepository
 
 
 def get_event_repository(
@@ -18,3 +19,9 @@ def get_document_repository(
     session: AsyncSession = Depends(get_session),
 ) -> SqlModelDocumentRepository:
     return SqlModelDocumentRepository(session)
+
+
+def get_subscription_repository(
+    session: AsyncSession = Depends(get_session),
+) -> SqlModelSubscriptionRepository:
+    return SqlModelSubscriptionRepository(session)

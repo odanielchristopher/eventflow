@@ -12,6 +12,7 @@ from src.core.config import get_settings
 from src.routes import document_router
 from src.routes import event_router
 from src.routes import hash_router
+from src.routes import subscription_router
 
 settings = get_settings()
 
@@ -38,6 +39,7 @@ def create_app() -> FastAPI:
     app.include_router(document_router)
     app.include_router(event_router)
     app.include_router(hash_router)
+    app.include_router(subscription_router)
     app.mount("/uploads", StaticFiles(directory=settings.resolved_upload_dir), name="uploads")
     add_pagination(app)
 

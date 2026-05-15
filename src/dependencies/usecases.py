@@ -2,9 +2,14 @@ from __future__ import annotations
 
 from fastapi import Depends
 
-from src.dependencies.repositories import get_document_repository, get_event_repository
+from src.dependencies.repositories import (
+    get_document_repository,
+    get_event_repository,
+    get_subscription_repository,
+)
 from src.infra.repositories.document_repository import SqlModelDocumentRepository
 from src.infra.repositories.event_repository import SqlModelEventRepository
+from src.infra.repositories.subscription_repository import SqlModelSubscriptionRepository
 from src.usecases.document import (
     CreateDocumentUseCase,
     DeleteDocumentUseCase,
@@ -19,6 +24,13 @@ from src.usecases.event import (
     GetEventByIdUseCase,
     ListAllEventsUseCase,
     UpdateEventUseCase,
+)
+from src.usecases.subscription import (
+    CreateSubscriptionUseCase,
+    DeleteSubscriptionUseCase,
+    GetSubscriptionByIdUseCase,
+    ListEventSubscriptionsUseCase,
+    UpdateSubscriptionUseCase,
 )
 
 
@@ -92,3 +104,36 @@ def get_delete_document_usecase(
     document_repository: SqlModelDocumentRepository = Depends(get_document_repository),
 ) -> DeleteDocumentUseCase:
     return DeleteDocumentUseCase(event_repository, document_repository)
+
+
+def get_create_subscription_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
+    subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
+) -> CreateSubscriptionUseCase:
+    return CreateSubscriptionUseCase(event_repository, subscription_repository)
+
+
+def get_list_event_subscriptions_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
+    subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
+) -> ListEventSubscriptionsUseCase:
+    return ListEventSubscriptionsUseCase(event_repository, subscription_repository)
+
+
+def get_subscription_by_id_usecase(
+    subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
+) -> GetSubscriptionByIdUseCase:
+    return GetSubscriptionByIdUseCase(subscription_repository)
+
+
+def get_update_subscription_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
+    subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
+) -> UpdateSubscriptionUseCase:
+    return UpdateSubscriptionUseCase(event_repository, subscription_repository)
+
+
+def get_delete_subscription_usecase(
+    subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
+) -> DeleteSubscriptionUseCase:
+    return DeleteSubscriptionUseCase(subscription_repository)
