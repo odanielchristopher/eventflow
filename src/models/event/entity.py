@@ -2,7 +2,7 @@ from datetime import date as date_type
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Column, Date, Numeric, String
+from sqlalchemy import Column, Date, Numeric, String, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -11,6 +11,11 @@ if TYPE_CHECKING:
 
 class Event(SQLModel, table=True):
     __tablename__ = "events"
+    __table_args__ = (
+        UniqueConstraint("title", name="uq_events_title"),
+        UniqueConstraint("description", name="uq_events_description"),
+        UniqueConstraint("date", "location", name="uq_events_date_location"),
+    )
 
     id: int | None = Field(default=None, primary_key=True)
     title: str = Field(sa_column=Column(String(length=255), nullable=False))

@@ -16,3 +16,5 @@ wheels/
 # Local database and container files
 postgres_data/
 sqlite_data/
+
+uploads/

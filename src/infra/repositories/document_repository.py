@@ -13,7 +13,7 @@ class SqlModelDocumentRepository:
     async def create(self, data: DocumentCreate) -> Document:
         document = Document.model_validate(data.model_dump())
         self.session.add(document)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(document)
         return document
 
@@ -26,10 +26,9 @@ class SqlModelDocumentRepository:
     async def update_size_bytes(self, document: Document, size_bytes: int) -> Document:
         document.size_bytes = size_bytes
         self.session.add(document)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(document)
         return document
 
     async def delete(self, document: Document) -> None:
         await self.session.delete(document)
-        await self.session.commit()

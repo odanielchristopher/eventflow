@@ -61,3 +61,12 @@ def delete_upload_by_url(file_url: str | None) -> None:
     path = settings.resolved_upload_dir / filename
     if path.exists():
         path.unlink()
+
+
+def delete_upload_by_filename(filename: str | None) -> None:
+    if not filename:
+        return
+
+    path = settings.resolved_upload_dir / filename
+    if path.exists():
+        path.unlink()
