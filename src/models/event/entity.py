@@ -7,6 +7,7 @@ from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from src.models.document.entity import Document
+    from src.models.subscription.entity import Subscription
 
 
 class Event(SQLModel, table=True):
@@ -31,3 +32,4 @@ class Event(SQLModel, table=True):
         sa_column=Column(Numeric(10, 2), nullable=False),
     )
     documents: list["Document"] = Relationship(back_populates="event")
+    subscriptions: list["Subscription"] = Relationship(back_populates="event")
