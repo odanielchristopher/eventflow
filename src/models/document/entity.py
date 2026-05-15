@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, Relationship, SQLModel
@@ -25,4 +23,4 @@ class Document(SQLModel, table=True):
         default_factory=utc_now,
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
-    event: "Event | None" = Relationship(back_populates="documents")
+    event: Optional["Event"] = Relationship(back_populates="documents")

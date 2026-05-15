@@ -1,13 +1,17 @@
+from __future__ import annotations
+
 from fastapi import HTTPException
 
-from src.core import delta_lake_cli
+from src.usecases.event.contracts import EventRepositoryProtocol
 
 class DeleteEventUseCase:
-  @staticmethod
-  def execute(event_id: int):
-    event = delta_lake_cli.events.get(event_id)
+    def __init__(self, event_repository: EventRepositoryProtocol) -> None:
+        self.event_repository = event_repository
 
-    if event is None:
-      raise HTTPException(status_code=404, detail="Event not found")
-    
-    delta_lake_cli.events.delete(event_id)
+    async def execute(self, event_id: int) -> None:
+        event = await self.event_repository.get_by_id(event_id)
+
+        if event is None:
+            raise HTTPException(status_code=404, detail="Event not found")
+
+        await self.event_repository.delete(event)

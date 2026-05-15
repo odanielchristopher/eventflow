@@ -1,7 +1,11 @@
-from src.models import CreateEventDto
-from src.core import delta_lake_cli
+from __future__ import annotations
+
+from src.models.event import EventCreate, EventEntity
+from src.usecases.event.contracts import EventRepositoryProtocol
 
 class CreateEventUseCase:
-  @staticmethod
-  def execute(event: CreateEventDto):
-    return delta_lake_cli.events.create(event)
+    def __init__(self, event_repository: EventRepositoryProtocol) -> None:
+        self.event_repository = event_repository
+
+    async def execute(self, event: EventCreate) -> EventEntity:
+        return await self.event_repository.create(event)

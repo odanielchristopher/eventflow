@@ -4,6 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi_pagination import add_pagination
 from scalar_fastapi import get_scalar_api_reference
 
 from src.core.config import get_settings
@@ -33,6 +34,7 @@ def create_app() -> FastAPI:
     )
     app.include_router(event_router)
     app.include_router(hash_router)
+    add_pagination(app)
 
     @app.get("/")
     def root() -> dict[str, str]:

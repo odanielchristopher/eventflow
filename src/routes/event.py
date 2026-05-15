@@ -1,97 +1,70 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Response
-from fastapi.responses import StreamingResponse
-from src.models import CreateEventDto, UpdateEventDto, Event, CountEventsResponse, PaginatedData
+from fastapi import APIRouter, Depends, Response, status
+from fastapi_pagination import Page, Params
 
-from src.usecases.event import CreateEventUseCase, ListAllEventsUseCase, ExportCsvUseCase, ExportCsvZipUseCase, UpdateEventUseCase, GetEventByIdUseCase, DeleteEventUseCase, CountEventsUseCase, ApplyVaccumOnEventDataUseCase
+from src.dependencies.usecases import (
+    get_create_event_usecase,
+    get_delete_event_usecase,
+    get_get_event_by_id_usecase,
+    get_list_all_events_usecase,
+    get_update_event_usecase,
+)
+from src.models.event import EventCreate, EventRead, EventUpdate
+from src.usecases.event import (
+    CreateEventUseCase,
+    DeleteEventUseCase,
+    GetEventByIdUseCase,
+    ListAllEventsUseCase,
+    UpdateEventUseCase,
+)
+
 
 router = APIRouter(prefix="/events", tags=["events"])
 
-@router.get('', response_model=PaginatedData[Event])
-def get_all_events(page: int = 1, per_page: int = 10):
-    return ListAllEventsUseCase().execute(page, per_page)
 
-@router.get('/count', response_model=CountEventsResponse)
-def count_events():
-    total = CountEventsUseCase().execute()
+@router.get("", response_model=Page[EventRead])
+async def get_all_events(
+    params: Params = Depends(),
+    usecase: ListAllEventsUseCase = Depends(get_list_all_events_usecase),
+):
+    return await usecase.execute(params)
 
-    return { "total": total }
 
-@router.get('/vacuum', status_code=204, response_model=None)
-def apply_vacuum():
-    return ApplyVaccumOnEventDataUseCase().execute()
+@router.post("", response_model=EventRead, status_code=status.HTTP_201_CREATED)
+async def create_event(
+    create_event_dto: EventCreate,
+    usecase: CreateEventUseCase = Depends(get_create_event_usecase),
+):
+    return await usecase.execute(create_event_dto)
 
-@router.post('', response_model=Event, status_code=201)
-def create_event(create_event_dto: CreateEventDto):
-    return CreateEventUseCase().execute(create_event_dto)
 
-@router.get(
-    "/csv",
-    response_class=StreamingResponse,
-    responses={
-        200: {
-            "content": {
-                "text/csv": {
-                    "schema": {
-                        "type": "string",
-                        "format": "binary",
-                    }
-                }
-            },
-            "description": "CSV export stream",
-        }
-    },
-)
-def export_csv():
-    return StreamingResponse(
-        ExportCsvUseCase().execute(),
-        media_type="text/csv",
-        headers={
-            "Content-Disposition": "attachment; filename=events.csv"
-        }
-    )
+@router.get("/{event_id}", response_model=EventRead)
+async def get_event_by_id(
+    event_id: int,
+    usecase: GetEventByIdUseCase = Depends(get_get_event_by_id_usecase),
+):
+    return await usecase.execute(event_id)
 
-@router.get(
-    "/csv/zip",
-    response_class=StreamingResponse,
-    responses={
-        200: {
-            "content": {
-                "application/zip": {
-                    "schema": {
-                        "type": "string",
-                        "format": "binary",
-                    }
-                }
-            },
-            "description": "ZIP export stream",
-        }
-    },
-)
-def export_csv_zip():
-    return StreamingResponse(
-        ExportCsvZipUseCase().execute(),
-        media_type="application/zip",
-        headers={
-            "Content-Disposition": "attachment; filename=events.zip"
-        }
-    )
 
-@router.get('/{event_id}', response_model=Event)
-def get_event_by_id(event_id: int):
-    return GetEventByIdUseCase().execute(event_id)
+@router.put("/{event_id}", response_model=EventRead)
+async def update_event(
+    event_id: int,
+    update_event_dto: EventUpdate,
+    usecase: UpdateEventUseCase = Depends(get_update_event_usecase),
+):
+    return await usecase.execute(event_id, update_event_dto)
 
-@router.put('/{event_id}', response_model=Event)
-def update_event(event_id: int, update_event_dto: UpdateEventDto):
-    return UpdateEventUseCase().execute(event_id, update_event_dto)
 
 @router.delete(
-    '/{event_id}',
-    status_code=204,
+    "/{event_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
     response_model=None,
     responses={204: {"description": "Event deleted successfully"}},
 )
-def delete_event(event_id: int) -> Response:
-    DeleteEventUseCase().execute(event_id)
-    return Response(status_code=204)
+async def delete_event(
+    event_id: int,
+    usecase: DeleteEventUseCase = Depends(get_delete_event_usecase),
+) -> Response:
+    await usecase.execute(event_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

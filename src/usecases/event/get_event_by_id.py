@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 from fastapi import HTTPException
 
-from src.core import delta_lake_cli
+from src.models.event import EventEntity
+from src.usecases.event.contracts import EventRepositoryProtocol
 
 class GetEventByIdUseCase:
-  @staticmethod
-  def execute(event_id: int):
-    event = delta_lake_cli.events.get(event_id)
+    def __init__(self, event_repository: EventRepositoryProtocol) -> None:
+        self.event_repository = event_repository
 
-    if event is None:
-      raise HTTPException(status_code=404, detail="Event not found")
+    async def execute(self, event_id: int) -> EventEntity:
+        event = await self.event_repository.get_by_id(event_id)
 
-    return event
+        if event is None:
+            raise HTTPException(status_code=404, detail="Event not found")
+
+        return event
