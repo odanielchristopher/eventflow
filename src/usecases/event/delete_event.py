@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import HTTPException
 
-from src.usecases.event.contracts import EventRepositoryProtocol
+from src.contracts.event_repository import EventRepositoryProtocol
 
 class DeleteEventUseCase:
     def __init__(self, event_repository: EventRepositoryProtocol) -> None:

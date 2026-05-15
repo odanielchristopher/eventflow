@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from fastapi import HTTPException
 
+from src.contracts.event_repository import EventRepositoryProtocol
 from src.models.event import EventEntity
-from src.usecases.event.contracts import EventRepositoryProtocol
 
 class GetEventByIdUseCase:
     def __init__(self, event_repository: EventRepositoryProtocol) -> None:

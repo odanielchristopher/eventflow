@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi_pagination import Params
 
-from src.usecases.event.contracts import EventRepositoryProtocol
+from src.contracts.event_repository import EventRepositoryProtocol
 
 class ListAllEventsUseCase:
     def __init__(self, event_repository: EventRepositoryProtocol) -> None:

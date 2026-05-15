@@ -5,6 +5,8 @@ import logging
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.exc import IntegrityError
 
+from src.contracts.document_repository import DocumentRepositoryProtocol
+from src.contracts.event_repository import EventRepositoryProtocol
 from src.core.uploads import (
     build_document_filename,
     build_document_url,
@@ -15,10 +17,6 @@ from src.core.uploads import (
 )
 from src.models.document import DocumentCreate
 from src.models.event import EventEntity, EventUpdate
-from src.usecases.event.contracts import (
-    DocumentRepositoryProtocol,
-    EventRepositoryProtocol,
-)
 
 
 logger = logging.getLogger(__name__)

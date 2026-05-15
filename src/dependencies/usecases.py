@@ -5,6 +5,14 @@ from fastapi import Depends
 from src.dependencies.repositories import get_document_repository, get_event_repository
 from src.infra.repositories.document_repository import SqlModelDocumentRepository
 from src.infra.repositories.event_repository import SqlModelEventRepository
+from src.usecases.document import (
+    CreateDocumentUseCase,
+    DeleteDocumentUseCase,
+    DownloadDocumentUseCase,
+    GetDocumentByIdUseCase,
+    ListEventDocumentsUseCase,
+    ReplaceDocumentUseCase,
+)
 from src.usecases.event import (
     CreateEventUseCase,
     DeleteEventUseCase,
@@ -44,3 +52,43 @@ def get_delete_event_usecase(
     event_repository: SqlModelEventRepository = Depends(get_event_repository),
 ) -> DeleteEventUseCase:
     return DeleteEventUseCase(event_repository)
+
+
+def get_create_document_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
+    document_repository: SqlModelDocumentRepository = Depends(get_document_repository),
+) -> CreateDocumentUseCase:
+    return CreateDocumentUseCase(event_repository, document_repository)
+
+
+def get_list_event_documents_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
+    document_repository: SqlModelDocumentRepository = Depends(get_document_repository),
+) -> ListEventDocumentsUseCase:
+    return ListEventDocumentsUseCase(event_repository, document_repository)
+
+
+def get_document_by_id_usecase(
+    document_repository: SqlModelDocumentRepository = Depends(get_document_repository),
+) -> GetDocumentByIdUseCase:
+    return GetDocumentByIdUseCase(document_repository)
+
+
+def get_download_document_usecase(
+    document_repository: SqlModelDocumentRepository = Depends(get_document_repository),
+) -> DownloadDocumentUseCase:
+    return DownloadDocumentUseCase(document_repository)
+
+
+def get_replace_document_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
+    document_repository: SqlModelDocumentRepository = Depends(get_document_repository),
+) -> ReplaceDocumentUseCase:
+    return ReplaceDocumentUseCase(event_repository, document_repository)
+
+
+def get_delete_document_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
+    document_repository: SqlModelDocumentRepository = Depends(get_document_repository),
+) -> DeleteDocumentUseCase:
+    return DeleteDocumentUseCase(event_repository, document_repository)

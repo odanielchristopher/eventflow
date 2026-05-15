@@ -95,3 +95,10 @@ class SqlModelEventRepository:
 
     async def delete(self, event: EventEntity) -> None:
         await self.session.delete(event)
+
+    async def set_banner_url(self, event: EventEntity, banner_img_url: str | None) -> EventEntity:
+        event.banner_img_url = banner_img_url
+        self.session.add(event)
+        await self.session.flush()
+        await self.session.refresh(event)
+        return event
