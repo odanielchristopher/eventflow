@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
+from fastapi.staticfiles import StaticFiles
 from scalar_fastapi import get_scalar_api_reference
 
 from src.core.config import get_settings
@@ -24,6 +25,7 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
+    settings.resolved_upload_dir.mkdir(parents=True, exist_ok=True)
     app = FastAPI(
         title="EventFlow API",
         version="0.1.0",
@@ -34,6 +36,7 @@ def create_app() -> FastAPI:
     )
     app.include_router(event_router)
     app.include_router(hash_router)
+    app.mount("/uploads", StaticFiles(directory=settings.resolved_upload_dir), name="uploads")
     add_pagination(app)
 
     @app.get("/")

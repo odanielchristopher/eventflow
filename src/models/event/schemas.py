@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from datetime import date as date_type
 from decimal import Decimal
+from typing import Annotated
 
+from fastapi import Form
 from pydantic import ConfigDict
 from sqlmodel import Field, SQLModel
 
@@ -20,7 +22,24 @@ class EventBase(SQLModel):
 
 
 class EventCreate(EventBase):
-    pass
+    @classmethod
+    def as_form(
+        cls,
+        title: Annotated[str, Form()],
+        description: Annotated[str, Form()],
+        date: Annotated[date_type, Form()],
+        location: Annotated[str, Form()],
+        capacity: Annotated[int, Form()],
+        sub_price: Annotated[Decimal, Form()],
+    ) -> "EventCreate":
+        return cls(
+            title=title,
+            description=description,
+            date=date,
+            location=location,
+            capacity=capacity,
+            sub_price=sub_price,
+        )
 
 
 class EventUpdate(SQLModel):
@@ -31,6 +50,25 @@ class EventUpdate(SQLModel):
     location: str | None = Field(default=None, max_length=255)
     capacity: int | None = Field(default=None, gt=0)
     sub_price: Decimal | None = Field(default=None, decimal_places=2, max_digits=10)
+
+    @classmethod
+    def as_form(
+        cls,
+        title: Annotated[str | None, Form()] = None,
+        description: Annotated[str | None, Form()] = None,
+        date: Annotated[date_type | None, Form()] = None,
+        location: Annotated[str | None, Form()] = None,
+        capacity: Annotated[int | None, Form()] = None,
+        sub_price: Annotated[Decimal | None, Form()] = None,
+    ) -> "EventUpdate":
+        return cls(
+            title=title,
+            description=description,
+            date=date,
+            location=location,
+            capacity=capacity,
+            sub_price=sub_price,
+        )
 
 
 class EventRead(EventBase):

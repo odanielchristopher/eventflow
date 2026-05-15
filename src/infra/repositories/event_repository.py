@@ -34,6 +34,7 @@ class SqlModelEventRepository:
         event = EventEntity.model_validate(data.model_dump())
         self.session.add(event)
         await self.session.commit()
+        await self.session.refresh(event)
         return await self.get_by_id(event.id) or event
 
     async def update(self, event: EventEntity, data: EventUpdate) -> EventEntity:
@@ -42,6 +43,7 @@ class SqlModelEventRepository:
 
         self.session.add(event)
         await self.session.commit()
+        await self.session.refresh(event)
         return await self.get_by_id(event.id) or event
 
     async def delete(self, event: EventEntity) -> None:
