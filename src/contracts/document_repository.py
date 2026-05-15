@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from typing import Any
 from typing import Protocol
+
+from fastapi_pagination import Params
 
 from src.models.document import Document, DocumentCreate
 
@@ -13,7 +16,7 @@ class DocumentRepositoryProtocol(Protocol):
 
     async def get_by_id(self, document_id: int) -> Document | None: ...
 
-    async def list_by_event_id(self, event_id: int) -> list[Document]: ...
+    async def list_by_event_id_paginated(self, event_id: int, params: Params) -> Any: ...
 
     async def update_size_bytes(self, document: Document, size_bytes: int) -> Document: ...
 

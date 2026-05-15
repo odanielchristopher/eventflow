@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
+from fastapi_pagination import Params
+from fastapi_pagination.ext.sqlalchemy import apaginate
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -34,13 +37,13 @@ class SqlModelDocumentRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list_by_event_id(self, event_id: int) -> list[Document]:
-        result = await self.session.execute(
+    async def list_by_event_id_paginated(self, event_id: int, params: Params) -> Any:
+        query = (
             select(Document)
             .where(Document.event_id == event_id)
             .order_by(Document.created_at.desc(), Document.id.desc())
         )
-        return list(result.scalars().all())
+        return await apaginate(self.session, query, params=params)
 
     async def update_size_bytes(self, document: Document, size_bytes: int) -> Document:
         document.size_bytes = size_bytes

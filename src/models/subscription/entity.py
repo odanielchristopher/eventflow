@@ -2,7 +2,7 @@ from datetime import date as date_type
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Column, Date, Numeric, String
+from sqlalchemy import Column, Date, Numeric, String, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -11,6 +11,9 @@ if TYPE_CHECKING:
 
 class Subscription(SQLModel, table=True):
     __tablename__ = "subscriptions"
+    __table_args__ = (
+        UniqueConstraint("email", "event_id", name="uq_subscriptions_email_event"),
+    )
 
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(sa_column=Column(String(length=255), nullable=False))

@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
+from fastapi_pagination import Params
+from fastapi_pagination.ext.sqlalchemy import apaginate
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -34,13 +37,32 @@ class SqlModelSubscriptionRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list_by_event_id(self, event_id: int) -> list[Subscription]:
-        result = await self.session.execute(
-            select(Subscription)
-            .where(Subscription.event_id == event_id)
-            .order_by(Subscription.registered_at.desc(), Subscription.id.desc())
+    async def list_paginated(self, params: Params, event_id: int | None = None) -> Any:
+        query = select(Subscription).order_by(
+            Subscription.registered_at.desc(),
+            Subscription.id.desc(),
         )
-        return list(result.scalars().all())
+        if event_id is not None:
+            query = query.where(Subscription.event_id == event_id)
+
+        return await apaginate(self.session, query, params=params)
+
+    async def exists_by_email_and_event_id(
+        self,
+        email: str,
+        event_id: int,
+        *,
+        exclude_subscription_id: int | None = None,
+    ) -> bool:
+        query = select(Subscription.id).where(
+            Subscription.email == email,
+            Subscription.event_id == event_id,
+        )
+        if exclude_subscription_id is not None:
+            query = query.where(Subscription.id != exclude_subscription_id)
+
+        result = await self.session.execute(query.limit(1))
+        return result.scalar_one_or_none() is not None
 
     async def update(
         self,

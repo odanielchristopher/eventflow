@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, Response, UploadFile, status
+from fastapi_pagination import Page, Params
 from fastapi.responses import FileResponse
 
 from src.dependencies.usecases import (
@@ -38,12 +39,13 @@ async def create_document_for_event(
     return await usecase.execute(event_id, file)
 
 
-@router.get("/events/{event_id}/documents", response_model=list[DocumentRead])
+@router.get("/events/{event_id}/documents", response_model=Page[DocumentRead])
 async def list_event_documents(
     event_id: int,
+    params: Params = Depends(),
     usecase: ListEventDocumentsUseCase = Depends(get_list_event_documents_usecase),
 ):
-    return await usecase.execute(event_id)
+    return await usecase.execute(event_id, params)
 
 
 @router.get("/documents/{document_id}", response_model=DocumentRead)

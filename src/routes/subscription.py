@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Response, status
+from fastapi_pagination import Page, Params
 
 from src.dependencies.usecases import (
     get_create_subscription_usecase,
@@ -26,28 +27,21 @@ from src.usecases.subscription import (
 router = APIRouter(tags=["subscriptions"])
 
 
-@router.post(
-    "/events/{event_id}/subscriptions",
-    response_model=SubscriptionRead,
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_subscription_for_event(
-    event_id: int,
+@router.post("/subscriptions", response_model=SubscriptionRead, status_code=status.HTTP_201_CREATED)
+async def create_subscription(
     payload: SubscriptionCreate,
     usecase: CreateSubscriptionUseCase = Depends(get_create_subscription_usecase),
 ):
-    return await usecase.execute(event_id, payload)
+    return await usecase.execute(payload)
 
 
-@router.get(
-    "/events/{event_id}/subscriptions",
-    response_model=list[SubscriptionRead],
-)
-async def list_event_subscriptions(
-    event_id: int,
+@router.get("/subscriptions", response_model=Page[SubscriptionRead])
+async def list_subscriptions(
+    params: Params = Depends(),
+    event_id: int | None = None,
     usecase: ListEventSubscriptionsUseCase = Depends(get_list_event_subscriptions_usecase),
 ):
-    return await usecase.execute(event_id)
+    return await usecase.execute(params, event_id)
 
 
 @router.get("/subscriptions/{subscription_id}", response_model=SubscriptionRead)
