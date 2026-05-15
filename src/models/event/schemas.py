@@ -6,6 +6,8 @@ from decimal import Decimal
 from pydantic import ConfigDict
 from sqlmodel import Field, SQLModel
 
+from src.models.document.schemas import DocumentRead
+
 
 class EventBase(SQLModel):
     title: str = Field(max_length=255)
@@ -35,3 +37,4 @@ class EventRead(EventBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    documents: list[DocumentRead] = Field(default_factory=list)

@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Column, DateTime
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from src.models.event.entity import Event
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
@@ -16,7 +20,9 @@ class Document(SQLModel, table=True):
     content_type: str = Field(max_length=255, nullable=False)
     extension: str = Field(max_length=20, nullable=False)
     size_bytes: int = Field(nullable=False, ge=0)
+    event_id: int | None = Field(default=None, foreign_key="events.id", nullable=True)
     created_at: datetime = Field(
         default_factory=utc_now,
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
+    event: "Event | None" = Relationship(back_populates="documents")

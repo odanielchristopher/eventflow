@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from datetime import date as date_type
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Column, Date, Numeric, String
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from src.models.document.entity import Document
 
 
 class Event(SQLModel, table=True):
@@ -23,3 +27,4 @@ class Event(SQLModel, table=True):
     sub_price: Decimal = Field(
         sa_column=Column(Numeric(10, 2), nullable=False),
     )
+    documents: list["Document"] = Relationship(back_populates="event")
