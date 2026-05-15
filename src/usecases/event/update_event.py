@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.exc import IntegrityError
 
@@ -18,6 +20,10 @@ from src.usecases.event.contracts import (
     EventRepositoryProtocol,
 )
 
+
+logger = logging.getLogger(__name__)
+
+
 class UpdateEventUseCase:
     def __init__(
         self,
@@ -33,15 +39,16 @@ class UpdateEventUseCase:
         update_dto: EventUpdate,
         banner_image: UploadFile | None = None,
     ) -> EventEntity:
-        event = await self.event_repository.get_by_id(event_id)
-
-        if event is None:
-            raise HTTPException(status_code=404, detail="Event not found")
-
-        await self._validate_update_rules(event, update_dto)
         saved_filename: str | None = None
+        event: EventEntity | None = None
         try:
             async with self.event_repository.transaction():
+                event = await self.event_repository.get_by_id(event_id)
+
+                if event is None:
+                    raise HTTPException(status_code=404, detail="Event not found")
+
+                await self._validate_update_rules(event, update_dto)
                 updated_event = await self.event_repository.update(event, update_dto)
 
                 if banner_image is None:
@@ -83,6 +90,7 @@ class UpdateEventUseCase:
             raise
         except Exception as exc:
             delete_upload_by_filename(saved_filename)
+            logger.exception("Unexpected error while updating event with banner")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Could not update event with banner image",

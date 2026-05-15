@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.exc import IntegrityError
 
@@ -18,6 +20,10 @@ from src.usecases.event.contracts import (
     EventRepositoryProtocol,
 )
 
+
+logger = logging.getLogger(__name__)
+
+
 class CreateEventUseCase:
     def __init__(
         self,
@@ -32,10 +38,11 @@ class CreateEventUseCase:
         event: EventCreate,
         banner_image: UploadFile | None = None,
     ) -> EventEntity:
-        await self._validate_create_rules(event)
         saved_filename: str | None = None
+        created_event: EventEntity | None = None
         try:
             async with self.event_repository.transaction():
+                await self._validate_create_rules(event)
                 created_event = await self.event_repository.create(event)
 
                 if banner_image is None:
@@ -77,6 +84,7 @@ class CreateEventUseCase:
             raise
         except Exception as exc:
             delete_upload_by_filename(saved_filename)
+            logger.exception("Unexpected error while creating event with banner")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Could not create event with banner image",
