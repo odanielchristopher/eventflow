@@ -9,7 +9,6 @@ Lucas Ferreira:
 - F6
 - F7
 
-Implementamos juntos a arquitetura inicial do projeto e tomamos a decisão de utilizar um client genérico para a criação e gerenciamento dos arquivos 
-delta lake. Abstraindo a camada de acesso a dados da camada de negócios da aplicação e, dessa forma, permitindo que a aplicação posssa ser facilmente alterada 
-para outras formas de persistência de dados. Além dissso a estrutura do client permite a implementação dos requisitos para as demais entidades do sistema sem 
-muitas dificuldades. 
+Implementamos juntos a arquitetura inicial do projeto e evoluimos a estrutura para uma persistencia relacional com FastAPI, SQLModel e Alembic.
+Com isso, separamos configuracao, repositorios, casos de uso e contratos, abstraindo o acesso a dados da camada de negocios e permitindo a evolucao
+das entidades e endpoints do sistema sem acoplamento direto ao banco usado pela aplicacao.

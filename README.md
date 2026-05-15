@@ -2,7 +2,7 @@
 
 A EventFlow API é um projeto FastAPI para gerenciamento de eventos, inscrições, atividades, palestrantes, check-ins e documentos.
 
-O projeto está sendo adaptado para o stack pedido no trabalho: `SQLModel`, `Alembic` e persistência relacional assíncrona com suporte a SQLite e PostgreSQL.
+O projeto usa `SQLModel`, `Alembic` e persistência relacional assíncrona com suporte a SQLite e PostgreSQL.
 
 ## Stack Atual De Dependências
 
@@ -97,15 +97,15 @@ O relacionamento com documentos será modelado para atender ao requisito do trab
 
 ## Seed De Dados
 
-O projeto já possui um script inicial de carga em:
+O projeto possui um script de carga para eventos em:
 
 ```text
 scripts/populate_events.py
 ```
 
-Ele será adaptado para o novo modelo relacional e deverá povoar SQLite ou PostgreSQL com dados realistas.
+Ele povoa o banco configurado no `.env` com eventos realistas usando a stack relacional atual.
 
-Exemplo atual de execução:
+Exemplo de execução:
 
 ```bash
 uv run scripts/populate_events.py --count 1000
@@ -161,14 +161,9 @@ uv run main.py
 http://localhost:3000/docs
 ```
 
-## Estado Atual Da Migração
+## Estado Atual
 
-- As dependências do novo stack já foram adicionadas.
-- O `uv.lock` já foi atualizado.
-- O ambiente local com PostgreSQL via Docker já foi configurado.
-- A arquitetura alvo do projeto já foi definida.
-- A próxima etapa é refatorar a persistência atual para `SQLModel` assíncrono com `Alembic`.
-
-## Observação Sobre O Legado
-
-O repositório ainda contém a implementação anterior baseada em Delta Lake. Essa estrutura será substituída gradualmente pela nova arquitetura relacional definida acima.
+- O projeto usa `SQLModel` assíncrono com `Alembic`.
+- O ambiente local com PostgreSQL via Docker já está configurado.
+- O SQLite local também pode ser usado via `.env`.
+- Os logs SQL estão habilitados por exigência do trabalho.

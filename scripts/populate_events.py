@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import random
 import sys
 from decimal import Decimal
 from pathlib import Path
 
 from faker import Faker
-import pyarrow as pa
-from deltalake import write_deltalake
+from sqlalchemy import select
 
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.models import CreateEventDto
-from src.core.storage import sequence_value, write_sequence
+from src.infra.db.session import session_factory
+from src.models.event import EventCreate, EventEntity
 
 EVENT_FORMATS = [
     "Congresso de {topic}",
@@ -41,21 +41,40 @@ EVENT_TOPICS = [
     "Design",
 ]
 
+EVENT_LOCATIONS = [
+    "Centro de Eventos - Fortaleza/CE",
+    "Expo Center - Recife/PE",
+    "Pavilhao Tech - Salvador/BA",
+    "Arena Inovacao - Sao Paulo/SP",
+    "Convention Hall - Natal/RN",
+    "Campus Summit - Joao Pessoa/PB",
+    "Centro Empresarial - Belo Horizonte/MG",
+    "Espaco Criativo - Curitiba/PR",
+    "Hub de Negocios - Brasilia/DF",
+    "Parque de Exposicoes - Porto Alegre/RS",
+]
 
-def build_event(fake: Faker, event_id: int) -> dict[str, object]:
-    event_date = fake.date_between(start_date="-180d", end_date="+365d")
+
+def build_event(fake: Faker, event_number: int, used_date_locations: set[tuple[object, str]]) -> EventCreate:
+    while True:
+        event_date = fake.date_between(start_date="-180d", end_date="+365d")
+        location = random.choice(EVENT_LOCATIONS)
+        date_location = (event_date, location)
+        if date_location not in used_date_locations:
+            used_date_locations.add(date_location)
+            break
+
     capacity = random.randint(40, 800)
     price = Decimal(f"{random.uniform(0, 850):.2f}")
 
-    dto = CreateEventDto(
-        title=random.choice(EVENT_FORMATS).format(topic=random.choice(EVENT_TOPICS)),
-        description=fake.text(max_nb_chars=220),
+    return EventCreate(
+        title=f"{random.choice(EVENT_FORMATS).format(topic=random.choice(EVENT_TOPICS))} {event_number}",
+        description=f"{fake.text(max_nb_chars=180)} Ref. seed {event_number}",
         date=event_date,
-        location=f"{fake.city()} - {fake.state_abbr()}",
+        location=location,
         capacity=capacity,
         sub_price=price,
     )
-    return {"id": event_id, **dto.model_dump()}
 
 
 def parse_args() -> argparse.Namespace:
@@ -65,26 +84,36 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+async def run_seed(count: int, seed: int) -> None:
+    random.seed(seed)
+    fake = Faker("pt_BR")
+    fake.seed_instance(seed)
+
+    async with session_factory() as session:
+        existing_result = await session.execute(select(EventEntity))
+        existing_events = list(existing_result.scalars().all())
+
+        used_date_locations = {(event.date, event.location) for event in existing_events}
+        start_index = len(existing_events) + 1
+
+        rows = [
+            EventEntity.model_validate(
+                build_event(fake, start_index + index, used_date_locations).model_dump()
+            )
+            for index in range(count)
+        ]
+
+        session.add_all(rows)
+        await session.commit()
+
+    print(f"Created {count} events")
+
+
 def main() -> None:
     args = parse_args()
     if args.count < 1:
         raise SystemExit("Use at least 1 registros.")
-
-    random.seed(args.seed)
-    fake = Faker("pt_BR")
-    fake.seed_instance(args.seed)
-
-    table_dir = ROOT / "src" / "data" / "events"
-    seq_file = ROOT / "src" / "data" / "events.seq"
-
-    start_id = sequence_value(seq_file)
-    rows = [build_event(fake, start_id + index + 1) for index in range(args.count)]
-
-    table = pa.Table.from_pylist(rows)
-    write_deltalake(table_dir.as_posix(), table, mode="append")
-    write_sequence(seq_file, start_id + args.count)
-
-    print(f"Created {args.count} events")
+    asyncio.run(run_seed(args.count, args.seed))
 
 
 if __name__ == "__main__":

@@ -11,7 +11,6 @@ Os use cases orquestram o fluxo entre rotas, repositórios e regras de validaç�
 - criar evento
 - criar inscrição
 - realizar check-in
-- exportar relatório CSV
-- exportar relatório ZIP
 - calcular hashes
-- executar vacuum em versões antigas do Delta Lake
+- enviar documentos
+- substituir arquivos
