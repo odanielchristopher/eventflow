@@ -1,5 +1,5 @@
 erDiagram
-    EVENT {
+    EVENTS {
         int id PK
         string title
         string description
@@ -10,38 +10,37 @@ erDiagram
         decimal sub_price
     }
 
-    ACTIVITY {
+    ACTIVITIES {
         int id PK
         string title
         time scheduled_at
         int event_id FK
     }
 
-    SPEAKER {
+    SPEAKERS {
         int id PK
         string name
         string specialty
         string bio
     }
 
-    CHECKIN {
+    CHECK_INS {
         int id PK
         datetime timestamp
         string access_point
         int registration_id FK
     }
 
-    SUBSCRIPTION {
+    SUBSCRIPTIONS {
         int id PK
         string name
         string email
         date registered_at
     }
 
-    EVENT ||--o{ ACTIVITY : contains
-    EVENT ||--o{ SUBSCRIPTION : contains
+    EVENTS ||--o{ ACTIVITIES : contains
+    EVENTS ||--o{ SUBSCRIPTIONS : contains
 
-    ACTIVITY }o--|{ SPEAKER : presented_by
+    ACTIVITIES }o--|{ SPEAKERS : presented_by
 
-    SUBSCRIPTION ||--o| CHECKIN : has      
-
+    SUBSCRIPTIONS ||--o| CHECK_INS : has      
