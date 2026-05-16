@@ -5,10 +5,12 @@ from fastapi import Depends
 from src.dependencies.repositories import (
     get_document_repository,
     get_event_repository,
+    get_speaker_repository,
     get_subscription_repository,
 )
 from src.infra.repositories.document_repository import SqlModelDocumentRepository
 from src.infra.repositories.event_repository import SqlModelEventRepository
+from src.infra.repositories.speaker_repository import SqlModelSpeakerRepository
 from src.infra.repositories.subscription_repository import SqlModelSubscriptionRepository
 from src.usecases.document import (
     CreateDocumentUseCase,
@@ -24,6 +26,13 @@ from src.usecases.event import (
     GetEventByIdUseCase,
     ListAllEventsUseCase,
     UpdateEventUseCase,
+)
+from src.usecases.speaker import (
+    CreateSpeakerUseCase,
+    DeleteSpeakerUseCase,
+    GetSpeakerByIdUseCase,
+    ListSpeakersUseCase,
+    UpdateSpeakerUseCase,
 )
 from src.usecases.subscription import (
     CreateSubscriptionUseCase,
@@ -137,3 +146,33 @@ def get_delete_subscription_usecase(
     subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
 ) -> DeleteSubscriptionUseCase:
     return DeleteSubscriptionUseCase(subscription_repository)
+
+
+def get_create_speaker_usecase(
+    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+) -> CreateSpeakerUseCase:
+    return CreateSpeakerUseCase(speaker_repository)
+
+
+def get_list_speakers_usecase(
+    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+) -> ListSpeakersUseCase:
+    return ListSpeakersUseCase(speaker_repository)
+
+
+def get_speaker_by_id_usecase(
+    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+) -> GetSpeakerByIdUseCase:
+    return GetSpeakerByIdUseCase(speaker_repository)
+
+
+def get_update_speaker_usecase(
+    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+) -> UpdateSpeakerUseCase:
+    return UpdateSpeakerUseCase(speaker_repository)
+
+
+def get_delete_speaker_usecase(
+    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+) -> DeleteSpeakerUseCase:
+    return DeleteSpeakerUseCase(speaker_repository)

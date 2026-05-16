@@ -6,6 +6,7 @@ from sqlalchemy import Column, Date, Numeric, String, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
+    from src.models.activity.entity import Activity
     from src.models.document.entity import Document
     from src.models.subscription.entity import Subscription
 
@@ -31,5 +32,6 @@ class Event(SQLModel, table=True):
     sub_price: Decimal = Field(
         sa_column=Column(Numeric(10, 2), nullable=False),
     )
+    activities: list["Activity"] = Relationship(back_populates="event")
     documents: list["Document"] = Relationship(back_populates="event")
     subscriptions: list["Subscription"] = Relationship(back_populates="event")

@@ -1,18 +1,20 @@
 from src.models.activity import Activity
+from src.models.activity_speaker import ActivitySpeaker
 from src.models.checkin import CheckIn
 from src.models.domain import DomainModel
 from src.models.event import EventCreate, EventEntity, EventRead, EventUpdate
 from src.models.paginated_data import PaginatedData, PaginationMeta
+from src.models.speaker import Speaker, SpeakerCreate, SpeakerRead, SpeakerUpdate
 from src.models.subscription import (
     Subscription,
     SubscriptionCreate,
     SubscriptionRead,
     SubscriptionUpdate,
 )
-from src.models.speaker import Speaker
 
 __all__ = [
     "Activity",
+    "ActivitySpeaker",
     "CheckIn",
     "DomainModel",
     "Subscription",
@@ -20,6 +22,9 @@ __all__ = [
     "SubscriptionRead",
     "SubscriptionUpdate",
     "Speaker",
+    "SpeakerCreate",
+    "SpeakerRead",
+    "SpeakerUpdate",
     "EventEntity",
     "EventCreate",
     "EventRead",
