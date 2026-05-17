@@ -39,12 +39,18 @@ class SqlModelSpeakerRepository:
 
     async def list_by_ids(self, speaker_ids: list[int]) -> list[Speaker]:
         result = await self.session.execute(
-            select(Speaker).where(Speaker.id.in_(speaker_ids))
+            select(Speaker)
+            .options(selectinload(Speaker.activities))
+            .where(Speaker.id.in_(speaker_ids))
         )
         return list(result.scalars().all())
 
     async def list_paginated(self, params: Params) -> Any:
-        query = select(Speaker).order_by(Speaker.name, Speaker.id)
+        query = (
+            select(Speaker)
+            .options(selectinload(Speaker.activities))
+            .order_by(Speaker.id)
+        )
         return await apaginate(self.session, query, params=params)
 
     async def update(self, speaker: Speaker, data: SpeakerUpdate) -> Speaker:

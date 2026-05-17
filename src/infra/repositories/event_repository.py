@@ -20,7 +20,11 @@ class SqlModelEventRepository:
     def _base_query(self):
         return (
             select(EventEntity)
-            .options(selectinload(EventEntity.documents))
+            .options(
+                selectinload(EventEntity.activities),
+                selectinload(EventEntity.documents),
+                selectinload(EventEntity.subscriptions),
+            )
             .order_by(EventEntity.id)
         )
 

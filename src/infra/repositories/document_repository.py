@@ -40,6 +40,7 @@ class SqlModelDocumentRepository:
     async def list_by_event_id_paginated(self, event_id: int, params: Params) -> Any:
         query = (
             select(Document)
+            .options(selectinload(Document.event))
             .where(Document.event_id == event_id)
             .order_by(Document.created_at.desc(), Document.id.desc())
         )
