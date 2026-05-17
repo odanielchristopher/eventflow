@@ -1,14 +1,11 @@
 Daniel Christopher:
-- F1
-- F2
-- F3
-- F4
+- Implementação da arquitetura inicial 
+- CRUD events 
+- CRUD subscriptions
+- conexão supabase
 
 Lucas Ferreira: 
-- F5
-- F6
-- F7
-
-Implementamos juntos a arquitetura inicial do projeto e evoluimos a estrutura para uma persistencia relacional com FastAPI, SQLModel e Alembic.
-Com isso, separamos configuracao, repositorios, casos de uso e contratos, abstraindo o acesso a dados da camada de negocios e permitindo a evolucao
-das entidades e endpoints do sistema sem acoplamento direto ao banco usado pela aplicacao.
+- CRUD speaker
+- CRUD Activity 
+- CRUD CHECK_IN
+- Populate
