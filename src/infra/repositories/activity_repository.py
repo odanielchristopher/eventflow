@@ -38,9 +38,12 @@ class SqlModelActivityRepository:
     async def create(
         self,
         data: ActivityCreate,
+        event_id: int,
         speakers: list[Speaker],
     ) -> Activity:
-        activity = Activity.model_validate(data.model_dump(exclude={"speaker_ids"}))
+        activity = Activity.model_validate(
+            data.model_dump(exclude={"speaker_ids"}) | {"event_id": event_id}
+        )
         activity.speakers = speakers
         self.session.add(activity)
         await self.session.flush()

@@ -39,11 +39,11 @@ class CreateActivityUseCase:
         return speakers
 
 
-    async def execute(self, data: ActivityCreate) -> Activity:
+    async def execute(self, event_id: int, data: ActivityCreate) -> Activity:
         async with self.activity_repository.transaction():
-            event = await self.event_repository.get_by_id(data.event_id)
+            event = await self.event_repository.get_by_id(event_id)
             if event is None:
-                raise HTTPException(status_code=404, detail=f"Event not found for id {data.event_id}")
+                raise HTTPException(status_code=404, detail=f"Event not found for id {event_id}")
 
             speakers = await self._get_speakers_or_raise(data.speaker_ids)
-            return await self.activity_repository.create(data, speakers)
+            return await self.activity_repository.create(data, event_id, speakers)

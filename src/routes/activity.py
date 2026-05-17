@@ -20,41 +20,44 @@ from src.usecases.activity import (
 )
 
 
-router = APIRouter(prefix="/activities", tags=["activities"])
+router = APIRouter(prefix="/events/{event_id}/activities", tags=["activities"])
 
 
 @router.post("", response_model=ActivityRead, status_code=status.HTTP_201_CREATED)
 async def create_activity(
+    event_id: int,
     payload: ActivityCreate,
     usecase: CreateActivityUseCase = Depends(get_create_activity_usecase),
 ):
-    return await usecase.execute(payload)
+    return await usecase.execute(event_id, payload)
 
 
 @router.get("", response_model=Page[ActivityRead])
 async def list_activities(
+    event_id: int,
     params: Params = Depends(),
-    event_id: int | None = None,
     usecase: ListActivitiesUseCase = Depends(get_list_activities_usecase),
 ):
-    return await usecase.execute(params, event_id)
+    return await usecase.execute(event_id, params)
 
 
 @router.get("/{activity_id}", response_model=ActivityRead)
 async def get_activity_by_id(
+    event_id: int,
     activity_id: int,
     usecase: GetActivityByIdUseCase = Depends(get_activity_by_id_usecase),
 ):
-    return await usecase.execute(activity_id)
+    return await usecase.execute(event_id, activity_id)
 
 
 @router.put("/{activity_id}", response_model=ActivityRead)
 async def update_activity(
+    event_id: int,
     activity_id: int,
     payload: ActivityUpdate,
     usecase: UpdateActivityUseCase = Depends(get_update_activity_usecase),
 ):
-    return await usecase.execute(activity_id, payload)
+    return await usecase.execute(event_id, activity_id, payload)
 
 
 @router.delete(
@@ -63,8 +66,9 @@ async def update_activity(
     response_model=None,
 )
 async def delete_activity(
+    event_id: int,
     activity_id: int,
     usecase: DeleteActivityUseCase = Depends(get_delete_activity_usecase),
 ) -> Response:
-    await usecase.execute(activity_id)
+    await usecase.execute(event_id, activity_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -148,9 +148,10 @@ def get_list_event_subscriptions_usecase(
 
 
 def get_subscription_by_id_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
     subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
 ) -> GetSubscriptionByIdUseCase:
-    return GetSubscriptionByIdUseCase(subscription_repository)
+    return GetSubscriptionByIdUseCase(event_repository, subscription_repository)
 
 
 def get_update_subscription_usecase(
@@ -161,9 +162,10 @@ def get_update_subscription_usecase(
 
 
 def get_delete_subscription_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
     subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
 ) -> DeleteSubscriptionUseCase:
-    return DeleteSubscriptionUseCase(subscription_repository)
+    return DeleteSubscriptionUseCase(event_repository, subscription_repository)
 
 
 def get_create_speaker_usecase(
@@ -216,9 +218,10 @@ def get_list_activities_usecase(
 
 
 def get_activity_by_id_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
     activity_repository: SqlModelActivityRepository = Depends(get_activity_repository),
 ) -> GetActivityByIdUseCase:
-    return GetActivityByIdUseCase(activity_repository)
+    return GetActivityByIdUseCase(event_repository, activity_repository)
 
 
 def get_update_activity_usecase(
@@ -234,18 +237,24 @@ def get_update_activity_usecase(
 
 
 def get_delete_activity_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
     activity_repository: SqlModelActivityRepository = Depends(get_activity_repository),
 ) -> DeleteActivityUseCase:
-    return DeleteActivityUseCase(activity_repository)
+    return DeleteActivityUseCase(event_repository, activity_repository)
 
 
 def get_create_check_in_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
     subscription_repository: SqlModelSubscriptionRepository = Depends(
         get_subscription_repository,
     ),
     check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
 ) -> CreateCheckInUseCase:
-    return CreateCheckInUseCase(subscription_repository, check_in_repository)
+    return CreateCheckInUseCase(
+        event_repository,
+        subscription_repository,
+        check_in_repository,
+    )
 
 
 def get_list_check_ins_usecase(
@@ -256,21 +265,28 @@ def get_list_check_ins_usecase(
 
 
 def get_check_in_by_id_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
     check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
 ) -> GetCheckInByIdUseCase:
-    return GetCheckInByIdUseCase(check_in_repository)
+    return GetCheckInByIdUseCase(event_repository, check_in_repository)
 
 
 def get_update_check_in_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
     subscription_repository: SqlModelSubscriptionRepository = Depends(
         get_subscription_repository,
     ),
     check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
 ) -> UpdateCheckInUseCase:
-    return UpdateCheckInUseCase(subscription_repository, check_in_repository)
+    return UpdateCheckInUseCase(
+        event_repository,
+        subscription_repository,
+        check_in_repository,
+    )
 
 
 def get_delete_check_in_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
     check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
 ) -> DeleteCheckInUseCase:
-    return DeleteCheckInUseCase(check_in_repository)
+    return DeleteCheckInUseCase(event_repository, check_in_repository)

@@ -34,8 +34,8 @@ class SqlModelSubscriptionRepository:
         )
         return result.scalar_one()
 
-    async def create(self, data: SubscriptionCreate) -> Subscription:
-        subscription = Subscription.model_validate(data.model_dump())
+    async def create(self, data: SubscriptionCreate, event_id: int) -> Subscription:
+        subscription = Subscription.model_validate(data.model_dump() | {"event_id": event_id})
         self.session.add(subscription)
         await self.session.flush()
         if subscription.id is None:

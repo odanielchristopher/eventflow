@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 
 from src.contracts.checkin_repository import CheckInRepositoryProtocol
+from src.contracts.event_repository import EventRepositoryProtocol
 from src.contracts.subscription_repository import SubscriptionRepositoryProtocol
 from src.models.checkin import CheckIn, CheckInCreate
 from src.models.subscription import Subscription
@@ -12,9 +13,11 @@ from src.models.subscription import Subscription
 class CreateCheckInUseCase:
     def __init__(
         self,
+        event_repository: EventRepositoryProtocol,
         subscription_repository: SubscriptionRepositoryProtocol,
         check_in_repository: CheckInRepositoryProtocol,
     ) -> None:
+        self.event_repository = event_repository
         self.subscription_repository = subscription_repository
         self.check_in_repository = check_in_repository
 
@@ -26,12 +29,21 @@ class CreateCheckInUseCase:
                 detail="Check-in timestamp must match the event date",
             )
 
-    async def execute(self, data: CheckInCreate) -> CheckIn:
+    async def execute(self, event_id: int, data: CheckInCreate) -> CheckIn:
         try:
             async with self.check_in_repository.transaction():
+                event = await self.event_repository.get_by_id(event_id)
+                if event is None:
+                    raise HTTPException(status_code=404, detail="Event not found")
+
                 subscription = await self.subscription_repository.get_by_id(data.subscription_id)
                 if subscription is None:
                     raise HTTPException(status_code=404, detail="Subscription not found")
+                if subscription.event_id != event_id:
+                    raise HTTPException(
+                        status_code=404,
+                        detail="Subscription not found for this event",
+                    )
 
                 self._ensure_timestamp_matches_event_date(data, subscription)
 

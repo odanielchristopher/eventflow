@@ -3,16 +3,26 @@ from __future__ import annotations
 from fastapi import HTTPException
 
 from src.contracts.activity_repository import ActivityRepositoryProtocol
+from src.contracts.event_repository import EventRepositoryProtocol
 from src.models.activity import Activity
 
 
 class GetActivityByIdUseCase:
-    def __init__(self, activity_repository: ActivityRepositoryProtocol) -> None:
+    def __init__(
+        self,
+        event_repository: EventRepositoryProtocol,
+        activity_repository: ActivityRepositoryProtocol,
+    ) -> None:
+        self.event_repository = event_repository
         self.activity_repository = activity_repository
 
-    async def execute(self, activity_id: int) -> Activity:
+    async def execute(self, event_id: int, activity_id: int) -> Activity:
+        event = await self.event_repository.get_by_id(event_id)
+        if event is None:
+            raise HTTPException(status_code=404, detail="Event not found")
+
         activity = await self.activity_repository.get_by_id(activity_id)
-        if activity is None:
+        if activity is None or activity.event_id != event_id:
             raise HTTPException(status_code=404, detail="Activity not found")
 
         return activity

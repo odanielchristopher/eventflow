@@ -29,27 +29,25 @@ class UpdateSubscriptionUseCase:
 
     async def execute(
         self,
+        event_id: int,
         subscription_id: int,
         data: SubscriptionUpdate,
     ) -> Subscription:
         try:
             async with self.subscription_repository.transaction():
-                subscription = await self.subscription_repository.get_by_id(subscription_id)
-                if subscription is None:
-                    raise HTTPException(status_code=404, detail="Subscription not found")
-
-                next_event_id = (
-                    data.event_id if data.event_id is not None else subscription.event_id
-                )
-                event = await self.event_repository.get_by_id(next_event_id)
+                event = await self.event_repository.get_by_id(event_id)
                 if event is None:
                     raise HTTPException(status_code=404, detail="Event not found")
                 self._ensure_event_is_open_for_subscription(event)
 
+                subscription = await self.subscription_repository.get_by_id(subscription_id)
+                if subscription is None or subscription.event_id != event_id:
+                    raise HTTPException(status_code=404, detail="Subscription not found")
+
                 next_email = data.email if data.email is not None else subscription.email
                 if await self.subscription_repository.exists_by_email_and_event_id(
                     next_email,
-                    next_event_id,
+                    event_id,
                     exclude_subscription_id=subscription.id,
                 ):
                     raise HTTPException(

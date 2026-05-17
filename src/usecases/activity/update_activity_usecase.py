@@ -29,16 +29,15 @@ class UpdateActivityUseCase:
 
         return speakers
 
-    async def execute(self, activity_id: int, data: ActivityUpdate) -> Activity:
+    async def execute(self, event_id: int, activity_id: int, data: ActivityUpdate) -> Activity:
         async with self.activity_repository.transaction():
-            activity = await self.activity_repository.get_by_id(activity_id)
-            if activity is None:
-                raise HTTPException(status_code=404, detail="Activity not found")
-
-            next_event_id = data.event_id if data.event_id is not None else activity.event_id
-            event = await self.event_repository.get_by_id(next_event_id)
+            event = await self.event_repository.get_by_id(event_id)
             if event is None:
                 raise HTTPException(status_code=404, detail="Event not found")
+
+            activity = await self.activity_repository.get_by_id(activity_id)
+            if activity is None or activity.event_id != event_id:
+                raise HTTPException(status_code=404, detail="Activity not found")
 
             speakers = None
             if data.speaker_ids is not None:

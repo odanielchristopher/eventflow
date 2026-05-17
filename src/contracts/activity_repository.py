@@ -15,6 +15,7 @@ class ActivityRepositoryProtocol(Protocol):
     async def create(
         self,
         data: ActivityCreate,
+        event_id: int,
         speakers: list[Speaker],
     ) -> Activity: ...
 

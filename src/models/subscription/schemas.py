@@ -14,7 +14,6 @@ class SubscriptionBase(SQLModel):
     email: str = Field(max_length=255)
     price: Decimal = Field(decimal_places=2, max_digits=10)
     registered_at: date_type = Field(default_factory=date_type.today)
-    event_id: int
 
 
 class SubscriptionCreate(SubscriptionBase):
@@ -26,11 +25,11 @@ class SubscriptionUpdate(SQLModel):
     email: str | None = Field(default=None, max_length=255)
     price: Decimal | None = Field(default=None, decimal_places=2, max_digits=10)
     registered_at: date_type | None = None
-    event_id: int | None = None
 
 
 class SubscriptionRead(SubscriptionBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    event_id: int
     check_in: CheckInRead | None = None

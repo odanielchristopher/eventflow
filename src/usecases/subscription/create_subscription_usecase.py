@@ -29,25 +29,26 @@ class CreateSubscriptionUseCase:
 
     async def execute(
         self,
+        event_id: int,
         data: SubscriptionCreate,
     ) -> Subscription:
         try:
             async with self.subscription_repository.transaction():
-                event = await self.event_repository.get_by_id(data.event_id)
+                event = await self.event_repository.get_by_id(event_id)
                 if event is None:
                     raise HTTPException(status_code=404, detail="Event not found")
                 self._ensure_event_is_open_for_subscription(event)
 
                 if await self.subscription_repository.exists_by_email_and_event_id(
                     data.email,
-                    data.event_id,
+                    event_id,
                 ):
                     raise HTTPException(
                         status_code=409,
                         detail="This email is already subscribed to this event",
                     )
 
-                return await self.subscription_repository.create(data)
+                return await self.subscription_repository.create(data, event_id)
         except IntegrityError as exc:
             raise HTTPException(
                 status_code=409,
