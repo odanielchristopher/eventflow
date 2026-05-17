@@ -4,12 +4,14 @@ from fastapi import Depends
 
 from src.dependencies.repositories import (
     get_activity_repository,
+    get_check_in_repository,
     get_document_repository,
     get_event_repository,
     get_speaker_repository,
     get_subscription_repository,
 )
 from src.infra.repositories.activity_repository import SqlModelActivityRepository
+from src.infra.repositories.checkin_repository import SqlModelCheckInRepository
 from src.infra.repositories.document_repository import SqlModelDocumentRepository
 from src.infra.repositories.event_repository import SqlModelEventRepository
 from src.infra.repositories.speaker_repository import SqlModelSpeakerRepository
@@ -20,6 +22,13 @@ from src.usecases.activity import (
     GetActivityByIdUseCase,
     ListActivitiesUseCase,
     UpdateActivityUseCase,
+)
+from src.usecases.checkin import (
+    CreateCheckInUseCase,
+    DeleteCheckInUseCase,
+    GetCheckInByIdUseCase,
+    ListCheckInsUseCase,
+    UpdateCheckInUseCase,
 )
 from src.usecases.document import (
     CreateDocumentUseCase,
@@ -228,3 +237,40 @@ def get_delete_activity_usecase(
     activity_repository: SqlModelActivityRepository = Depends(get_activity_repository),
 ) -> DeleteActivityUseCase:
     return DeleteActivityUseCase(activity_repository)
+
+
+def get_create_check_in_usecase(
+    subscription_repository: SqlModelSubscriptionRepository = Depends(
+        get_subscription_repository,
+    ),
+    check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
+) -> CreateCheckInUseCase:
+    return CreateCheckInUseCase(subscription_repository, check_in_repository)
+
+
+def get_list_check_ins_usecase(
+    event_repository: SqlModelEventRepository = Depends(get_event_repository),
+    check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
+) -> ListCheckInsUseCase:
+    return ListCheckInsUseCase(event_repository, check_in_repository)
+
+
+def get_check_in_by_id_usecase(
+    check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
+) -> GetCheckInByIdUseCase:
+    return GetCheckInByIdUseCase(check_in_repository)
+
+
+def get_update_check_in_usecase(
+    subscription_repository: SqlModelSubscriptionRepository = Depends(
+        get_subscription_repository,
+    ),
+    check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
+) -> UpdateCheckInUseCase:
+    return UpdateCheckInUseCase(subscription_repository, check_in_repository)
+
+
+def get_delete_check_in_usecase(
+    check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
+) -> DeleteCheckInUseCase:
+    return DeleteCheckInUseCase(check_in_repository)

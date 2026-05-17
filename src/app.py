@@ -10,6 +10,7 @@ from scalar_fastapi import get_scalar_api_reference
 
 from src.core.config import get_settings
 from src.routes import activity_router
+from src.routes import check_in_router
 from src.routes import document_router
 from src.routes import event_router
 from src.routes import hash_router
@@ -39,6 +40,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
     app.include_router(activity_router)
+    app.include_router(check_in_router)
     app.include_router(document_router)
     app.include_router(event_router)
     app.include_router(hash_router)

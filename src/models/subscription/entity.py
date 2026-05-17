@@ -6,6 +6,7 @@ from sqlalchemy import Column, Date, Numeric, String, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
+    from src.models.checkin.entity import CheckIn
     from src.models.event.entity import Event
 
 
@@ -23,3 +24,7 @@ class Subscription(SQLModel, table=True):
     event_id: int = Field(foreign_key="events.id", nullable=False)
 
     event: "Event" = Relationship(back_populates="subscriptions")
+    check_in: "CheckIn" = Relationship(
+        back_populates="subscription",
+        sa_relationship_kwargs={"uselist": False},
+    )
