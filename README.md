@@ -163,7 +163,11 @@ Servicos disponiveis:
 - Adminer em `http://localhost:8080`
 
 ## Como Executar
+Antes de executar é necessário baixas as dependências (libs) com o comando: 
 
+```bash
+uv sync
+```
 O ponto de entrada atual é `main.py`.
 
 ```bash
@@ -179,6 +183,6 @@ http://localhost:3000/docs
 ## Estado Atual
 
 - O projeto usa `SQLModel` assíncrono com `Alembic`.
-- O ambiente local com PostgreSQL via Docker já está configurado.
-- O SQLite local também pode ser usado via `.env`.
+- A aplicação pode se conectar localmente com SQLite
+- A aplicação pode se conectar com um banco de dados postgres em nuvem
 - Os logs SQL estão habilitados por exigência do trabalho.
