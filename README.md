@@ -97,25 +97,40 @@ O relacionamento com documentos será modelado para atender ao requisito do trab
 
 ## Seed De Dados
 
-O projeto possui um script de carga para eventos em:
+O projeto possui um script de carga geral em:
 
 ```text
-scripts/populate_events.py
+scripts/populate_database.py
 ```
 
-Ele povoa o banco configurado no `.env` com eventos realistas usando a stack relacional atual.
+Ele povoa o banco configurado no `.env` com dados realistas em `pt_BR` para as entidades principais do dominio:
+
+- eventos
+- palestrantes
+- atividades
+- documentos
+- inscricoes
+- check-ins
+
+Antes de executar o populate, aplique as migrations no banco configurado:
+
+```bash
+uv run alembic upgrade head
+```
 
 Exemplo de execução:
 
 ```bash
-uv run scripts/populate_events.py --count 1000
+uv run scripts/populate_database.py
 ```
 
-Você também pode fixar a geração com uma seed:
+Por padrao, o comando cria no minimo 100 registros por entidade. Voce tambem pode aumentar a quantidade por entidade e fixar a geracao com uma seed:
 
 ```bash
-uv run scripts/populate_events.py --count 1000 --seed 42
+uv run scripts/populate_database.py --count-per-entity 250 --seed 42
 ```
+
+O arquivo antigo `scripts/populate_events.py` continua disponivel como atalho para o novo populate.
 
 ## Ambiente Local
 
