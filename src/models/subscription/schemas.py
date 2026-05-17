@@ -6,6 +6,8 @@ from decimal import Decimal
 from pydantic import ConfigDict
 from sqlmodel import Field, SQLModel
 
+from src.models.checkin.schemas import CheckInRead
+
 
 class SubscriptionBase(SQLModel):
     name: str = Field(max_length=255)
@@ -31,3 +33,4 @@ class SubscriptionRead(SubscriptionBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    check_in: CheckInRead | None = None

@@ -22,23 +22,34 @@ class SqlModelSubscriptionRepository:
         async with self.session.begin():
             yield
 
+    def _base_query(self):
+        return select(Subscription).options(
+            selectinload(Subscription.event),
+            selectinload(Subscription.check_in),
+        )
+
+    async def _get_loaded_by_id(self, subscription_id: int) -> Subscription:
+        result = await self.session.execute(
+            self._base_query().where(Subscription.id == subscription_id)
+        )
+        return result.scalar_one()
+
     async def create(self, data: SubscriptionCreate) -> Subscription:
         subscription = Subscription.model_validate(data.model_dump())
         self.session.add(subscription)
         await self.session.flush()
-        await self.session.refresh(subscription)
-        return subscription
+        if subscription.id is None:
+            raise RuntimeError("Subscription ID was not generated")
+        return await self._get_loaded_by_id(subscription.id)
 
     async def get_by_id(self, subscription_id: int) -> Subscription | None:
         result = await self.session.execute(
-            select(Subscription)
-            .options(selectinload(Subscription.event))
-            .where(Subscription.id == subscription_id)
+            self._base_query().where(Subscription.id == subscription_id)
         )
         return result.scalar_one_or_none()
 
     async def list_paginated(self, params: Params, event_id: int | None = None) -> Any:
-        query = select(Subscription).order_by(
+        query = self._base_query().order_by(
             Subscription.registered_at.desc(),
             Subscription.id.desc(),
         )
@@ -74,8 +85,9 @@ class SqlModelSubscriptionRepository:
 
         self.session.add(subscription)
         await self.session.flush()
-        await self.session.refresh(subscription)
-        return subscription
+        if subscription.id is None:
+            raise RuntimeError("Subscription ID was not generated")
+        return await self._get_loaded_by_id(subscription.id)
 
     async def delete(self, subscription: Subscription) -> None:
         await self.session.delete(subscription)

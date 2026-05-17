@@ -9,9 +9,12 @@ from fastapi.staticfiles import StaticFiles
 from scalar_fastapi import get_scalar_api_reference
 
 from src.core.config import get_settings
+from src.routes import activity_router
+from src.routes import check_in_router
 from src.routes import document_router
 from src.routes import event_router
 from src.routes import hash_router
+from src.routes import speaker_router
 from src.routes import subscription_router
 
 settings = get_settings()
@@ -36,9 +39,12 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json",
         lifespan=lifespan,
     )
+    app.include_router(activity_router)
+    app.include_router(check_in_router)
     app.include_router(document_router)
     app.include_router(event_router)
     app.include_router(hash_router)
+    app.include_router(speaker_router)
     app.include_router(subscription_router)
     app.mount("/uploads", StaticFiles(directory=settings.resolved_upload_dir), name="uploads")
     add_pagination(app)
