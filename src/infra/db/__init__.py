@@ -1,4 +1,3 @@
-from src.infra.db.client import db_client
-from src.infra.db.session import get_async_session
+from src.infra.db.mongo import close_mongo, init_mongo
 
-__all__ = ["db_client", "get_async_session"]
+__all__ = ["close_mongo", "init_mongo"]

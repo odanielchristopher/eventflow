@@ -5,13 +5,12 @@ from decimal import Decimal
 from typing import Annotated
 
 from fastapi import Form
-from pydantic import ConfigDict
-from sqlmodel import Field, SQLModel
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.models.document.schemas import DocumentRead
 
 
-class EventBase(SQLModel):
+class EventBase(BaseModel):
     title: str = Field(max_length=255)
     description: str = Field(max_length=1000)
     banner_img_url: str | None = Field(default=None, max_length=500)
@@ -42,7 +41,7 @@ class EventCreate(EventBase):
         )
 
 
-class EventUpdate(SQLModel):
+class EventUpdate(BaseModel):
     title: str | None = Field(default=None, max_length=255)
     description: str | None = Field(default=None, max_length=1000)
     banner_img_url: str | None = Field(default=None, max_length=500)
@@ -74,5 +73,10 @@ class EventUpdate(SQLModel):
 class EventRead(EventBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
+    id: str
     documents: list[DocumentRead] = Field(default_factory=list)
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def stringify_id(cls, value) -> str:
+        return str(value)

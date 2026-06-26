@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date as date_type
 
 from fastapi import HTTPException
-from sqlalchemy.exc import IntegrityError
+from pymongo.errors import DuplicateKeyError
 
 from src.contracts.event_repository import EventRepositoryProtocol
 from src.contracts.subscription_repository import SubscriptionRepositoryProtocol
@@ -29,7 +29,7 @@ class CreateSubscriptionUseCase:
 
     async def execute(
         self,
-        event_id: int,
+        event_id: str,
         data: SubscriptionCreate,
     ) -> Subscription:
         try:
@@ -49,7 +49,7 @@ class CreateSubscriptionUseCase:
                     )
 
                 return await self.subscription_repository.create(data, event_id)
-        except IntegrityError as exc:
+        except DuplicateKeyError as exc:
             raise HTTPException(
                 status_code=409,
                 detail="This email is already subscribed to this event",

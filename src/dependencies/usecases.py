@@ -63,9 +63,8 @@ from src.usecases.subscription import (
 
 def get_create_event_usecase(
     event_repository: SqlModelEventRepository = Depends(get_event_repository),
-    document_repository: SqlModelDocumentRepository = Depends(get_document_repository),
 ) -> CreateEventUseCase:
-    return CreateEventUseCase(event_repository, document_repository)
+    return CreateEventUseCase(event_repository)
 
 
 def get_list_all_events_usecase(
@@ -82,9 +81,8 @@ def get_get_event_by_id_usecase(
 
 def get_update_event_usecase(
     event_repository: SqlModelEventRepository = Depends(get_event_repository),
-    document_repository: SqlModelDocumentRepository = Depends(get_document_repository),
 ) -> UpdateEventUseCase:
-    return UpdateEventUseCase(event_repository, document_repository)
+    return UpdateEventUseCase(event_repository)
 
 
 def get_delete_event_usecase(

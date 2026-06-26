@@ -6,24 +6,35 @@ from typing import Protocol
 
 from fastapi_pagination import Params
 
+from datetime import date as date_type
+
 from src.models.subscription import Subscription, SubscriptionCreate, SubscriptionUpdate
 
 
 class SubscriptionRepositoryProtocol(Protocol):
     def transaction(self) -> AsyncIterator[None]: ...
 
-    async def create(self, data: SubscriptionCreate, event_id: int) -> Subscription: ...
+    async def create(self, data: SubscriptionCreate, event_id: str) -> Subscription: ...
 
-    async def get_by_id(self, subscription_id: int) -> Subscription | None: ...
+    async def get_by_id(self, subscription_id: str) -> Subscription | None: ...
 
-    async def list_paginated(self, params: Params, event_id: int | None = None) -> Any: ...
+    async def list_paginated(
+        self,
+        params: Params,
+        event_id: str | None = None,
+        *,
+        name: str | None = None,
+        case_sensitive: bool = False,
+        registered_from: date_type | None = None,
+        registered_to: date_type | None = None,
+    ) -> Any: ...
 
     async def exists_by_email_and_event_id(
         self,
         email: str,
-        event_id: int,
+        event_id: str,
         *,
-        exclude_subscription_id: int | None = None,
+        exclude_subscription_id: str | None = None,
     ) -> bool: ...
 
     async def update(

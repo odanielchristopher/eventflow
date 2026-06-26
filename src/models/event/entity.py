@@ -1,37 +1,25 @@
 from datetime import date as date_type
 from decimal import Decimal
-from typing import TYPE_CHECKING
 
-from sqlalchemy import Column, Date, Numeric, String, UniqueConstraint
-from sqlmodel import Field, Relationship, SQLModel
-
-if TYPE_CHECKING:
-    from src.models.activity.entity import Activity
-    from src.models.document.entity import Document
-    from src.models.subscription.entity import Subscription
+from beanie import Document
+from pydantic import Field
+from pymongo import IndexModel
 
 
-class Event(SQLModel, table=True):
-    __tablename__ = "events"
-    __table_args__ = (
-        UniqueConstraint("title", name="uq_events_title"),
-        UniqueConstraint("description", name="uq_events_description"),
-        UniqueConstraint("date", "location", name="uq_events_date_location"),
-    )
+class Event(Document):
+    title: str = Field(max_length=255)
+    description: str = Field(max_length=1000)
+    banner_img_url: str | None = Field(default=None, max_length=500)
+    date: date_type
+    location: str = Field(max_length=255)
+    capacity: int = Field(gt=0)
+    sub_price: Decimal = Field(decimal_places=2, max_digits=10)
+    document_ids: list[str] = Field(default_factory=list)
 
-    id: int | None = Field(default=None, primary_key=True)
-    title: str = Field(sa_column=Column(String(length=255), nullable=False))
-    description: str = Field(sa_column=Column(String(length=1000), nullable=False))
-    banner_img_url: str | None = Field(
-        default=None,
-        sa_column=Column(String(length=500), nullable=True),
-    )
-    date: date_type = Field(sa_column=Column(Date(), nullable=False))
-    location: str = Field(sa_column=Column(String(length=255), nullable=False))
-    capacity: int = Field(nullable=False, gt=0)
-    sub_price: Decimal = Field(
-        sa_column=Column(Numeric(10, 2), nullable=False),
-    )
-    activities: list["Activity"] = Relationship(back_populates="event")
-    documents: list["Document"] = Relationship(back_populates="event")
-    subscriptions: list["Subscription"] = Relationship(back_populates="event")
+    class Settings:
+        name = "events"
+        indexes = [
+            IndexModel([("title", 1)], unique=True),
+            IndexModel([("description", 1)], unique=True),
+            IndexModel([("date", 1), ("location", 1)], unique=True),
+        ]

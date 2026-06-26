@@ -2,78 +2,79 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import date as date_type
+import re
 from typing import Any
 
-from fastapi_pagination import Params
-from fastapi_pagination.ext.sqlalchemy import apaginate
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from beanie import PydanticObjectId
+from fastapi import HTTPException
+from fastapi_pagination import Params, create_page
 
 from src.models.subscription import Subscription, SubscriptionCreate, SubscriptionUpdate
 
 
 class SqlModelSubscriptionRepository:
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(self, session: object | None = None) -> None:
         self.session = session
 
     @asynccontextmanager
     async def transaction(self) -> AsyncIterator[None]:
-        async with self.session.begin():
-            yield
+        yield
 
-    def _base_query(self):
-        return select(Subscription).options(
-            selectinload(Subscription.event),
-            selectinload(Subscription.check_in),
-        )
+    async def create(self, data: SubscriptionCreate, event_id: str) -> Subscription:
+        subscription = Subscription(**data.model_dump(), event_id=event_id)
+        await subscription.insert()
+        return subscription
 
-    async def _get_loaded_by_id(self, subscription_id: int) -> Subscription:
-        result = await self.session.execute(
-            self._base_query().where(Subscription.id == subscription_id)
-        )
-        return result.scalar_one()
+    async def get_by_id(self, subscription_id: str) -> Subscription | None:
+        try:
+            return await Subscription.get(PydanticObjectId(subscription_id))
+        except Exception as exc:
+            raise HTTPException(status_code=422, detail="Invalid subscription id") from exc
 
-    async def create(self, data: SubscriptionCreate, event_id: int) -> Subscription:
-        subscription = Subscription.model_validate(data.model_dump() | {"event_id": event_id})
-        self.session.add(subscription)
-        await self.session.flush()
-        if subscription.id is None:
-            raise RuntimeError("Subscription ID was not generated")
-        return await self._get_loaded_by_id(subscription.id)
-
-    async def get_by_id(self, subscription_id: int) -> Subscription | None:
-        result = await self.session.execute(
-            self._base_query().where(Subscription.id == subscription_id)
-        )
-        return result.scalar_one_or_none()
-
-    async def list_paginated(self, params: Params, event_id: int | None = None) -> Any:
-        query = self._base_query().order_by(
-            Subscription.registered_at.desc(),
-            Subscription.id.desc(),
-        )
+    async def list_paginated(
+        self,
+        params: Params,
+        event_id: str | None = None,
+        *,
+        name: str | None = None,
+        case_sensitive: bool = False,
+        registered_from: date_type | None = None,
+        registered_to: date_type | None = None,
+    ) -> Any:
+        filters: dict[str, Any] = {}
         if event_id is not None:
-            query = query.where(Subscription.event_id == event_id)
+            filters["event_id"] = event_id
+        if name:
+            name_filter: dict[str, str] = {"$regex": re.escape(name)}
+            if not case_sensitive:
+                name_filter["$options"] = "i"
+            filters["name"] = name_filter
+        if registered_from is not None or registered_to is not None:
+            date_filter: dict[str, date_type] = {}
+            if registered_from is not None:
+                date_filter["$gte"] = registered_from
+            if registered_to is not None:
+                date_filter["$lte"] = registered_to
+            filters["registered_at"] = date_filter
 
-        return await apaginate(self.session, query, params=params)
+        query = Subscription.find(filters).sort("-registered_at", "-_id")
+        total = await query.count()
+        items = await query.skip((params.page - 1) * params.size).limit(params.size).to_list()
+        return create_page(items, total=total, params=params)
 
     async def exists_by_email_and_event_id(
         self,
         email: str,
-        event_id: int,
+        event_id: str,
         *,
-        exclude_subscription_id: int | None = None,
+        exclude_subscription_id: str | None = None,
     ) -> bool:
-        query = select(Subscription.id).where(
-            Subscription.email == email,
-            Subscription.event_id == event_id,
-        )
+        filters: dict[str, Any] = {"email": email, "event_id": event_id}
         if exclude_subscription_id is not None:
-            query = query.where(Subscription.id != exclude_subscription_id)
+            filters["_id"] = {"$ne": PydanticObjectId(exclude_subscription_id)}
 
-        result = await self.session.execute(query.limit(1))
-        return result.scalar_one_or_none() is not None
+        return await Subscription.find_one(filters) is not None
 
     async def update(
         self,
@@ -83,11 +84,8 @@ class SqlModelSubscriptionRepository:
         for field, value in data.model_dump(exclude_unset=True).items():
             setattr(subscription, field, value)
 
-        self.session.add(subscription)
-        await self.session.flush()
-        if subscription.id is None:
-            raise RuntimeError("Subscription ID was not generated")
-        return await self._get_loaded_by_id(subscription.id)
+        await subscription.save()
+        return subscription
 
     async def delete(self, subscription: Subscription) -> None:
-        await self.session.delete(subscription)
+        await subscription.delete()

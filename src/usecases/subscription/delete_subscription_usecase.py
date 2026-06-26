@@ -15,7 +15,7 @@ class DeleteSubscriptionUseCase:
         self.event_repository = event_repository
         self.subscription_repository = subscription_repository
 
-    async def execute(self, event_id: int, subscription_id: int) -> None:
+    async def execute(self, event_id: str, subscription_id: str) -> None:
         async with self.subscription_repository.transaction():
             event = await self.event_repository.get_by_id(event_id)
             if event is None:

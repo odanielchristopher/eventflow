@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.dependencies.db import get_session
 from src.infra.repositories.activity_repository import SqlModelActivityRepository
 from src.infra.repositories.checkin_repository import SqlModelCheckInRepository
 from src.infra.repositories.document_repository import SqlModelDocumentRepository
@@ -12,37 +8,25 @@ from src.infra.repositories.speaker_repository import SqlModelSpeakerRepository
 from src.infra.repositories.subscription_repository import SqlModelSubscriptionRepository
 
 
-def get_event_repository(
-    session: AsyncSession = Depends(get_session),
-) -> SqlModelEventRepository:
-    return SqlModelEventRepository(session)
+def get_event_repository() -> SqlModelEventRepository:
+    return SqlModelEventRepository()
 
 
-def get_document_repository(
-    session: AsyncSession = Depends(get_session),
-) -> SqlModelDocumentRepository:
-    return SqlModelDocumentRepository(session)
+def get_document_repository() -> SqlModelDocumentRepository:
+    return SqlModelDocumentRepository(None)
 
 
-def get_subscription_repository(
-    session: AsyncSession = Depends(get_session),
-) -> SqlModelSubscriptionRepository:
-    return SqlModelSubscriptionRepository(session)
+def get_subscription_repository() -> SqlModelSubscriptionRepository:
+    return SqlModelSubscriptionRepository()
 
 
-def get_speaker_repository(
-    session: AsyncSession = Depends(get_session),
-) -> SqlModelSpeakerRepository:
-    return SqlModelSpeakerRepository(session)
+def get_speaker_repository() -> SqlModelSpeakerRepository:
+    return SqlModelSpeakerRepository(None)
 
 
-def get_activity_repository(
-    session: AsyncSession = Depends(get_session),
-) -> SqlModelActivityRepository:
-    return SqlModelActivityRepository(session)
+def get_activity_repository() -> SqlModelActivityRepository:
+    return SqlModelActivityRepository(None)
 
 
-def get_check_in_repository(
-    session: AsyncSession = Depends(get_session),
-) -> SqlModelCheckInRepository:
-    return SqlModelCheckInRepository(session)
+def get_check_in_repository() -> SqlModelCheckInRepository:
+    return SqlModelCheckInRepository(None)

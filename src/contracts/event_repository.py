@@ -13,20 +13,20 @@ class EventRepositoryProtocol(Protocol):
 
     async def list_paginated(self, params: Params) -> Any: ...
 
-    async def get_by_id(self, event_id: int) -> EventEntity | None: ...
+    async def get_by_id(self, event_id: str) -> EventEntity | None: ...
 
     async def exists_by_title(
         self,
         title: str,
         *,
-        exclude_event_id: int | None = None,
+        exclude_event_id: str | None = None,
     ) -> bool: ...
 
     async def exists_by_description(
         self,
         description: str,
         *,
-        exclude_event_id: int | None = None,
+        exclude_event_id: str | None = None,
     ) -> bool: ...
 
     async def exists_by_date_and_location(
@@ -34,7 +34,7 @@ class EventRepositoryProtocol(Protocol):
         event_date,
         location: str,
         *,
-        exclude_event_id: int | None = None,
+        exclude_event_id: str | None = None,
     ) -> bool: ...
 
     async def create(self, data: EventCreate) -> EventEntity: ...

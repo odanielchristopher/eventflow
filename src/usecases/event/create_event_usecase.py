@@ -1,91 +1,31 @@
 from __future__ import annotations
 
-import logging
+from fastapi import HTTPException, status
+from pymongo.errors import DuplicateKeyError
 
-from fastapi import HTTPException, UploadFile, status
-from sqlalchemy.exc import IntegrityError
-
-from src.contracts.document_repository import DocumentRepositoryProtocol
 from src.contracts.event_repository import EventRepositoryProtocol
-from src.core.uploads import (
-    build_document_filename,
-    build_document_url,
-    delete_upload_by_filename,
-    ensure_image_upload,
-    get_upload_extension,
-    save_upload_file,
-)
-from src.models.document import DocumentCreate
-from src.models.event import EventCreate, EventEntity, EventUpdate
-
-
-logger = logging.getLogger(__name__)
+from src.models.event import EventCreate, EventEntity
 
 
 class CreateEventUseCase:
     def __init__(
         self,
         event_repository: EventRepositoryProtocol,
-        document_repository: DocumentRepositoryProtocol,
     ) -> None:
         self.event_repository = event_repository
-        self.document_repository = document_repository
 
     async def execute(
         self,
         event: EventCreate,
-        banner_image: UploadFile | None = None,
     ) -> EventEntity:
-        saved_filename: str | None = None
-        created_event: EventEntity | None = None
         try:
             async with self.event_repository.transaction():
                 await self._validate_create_rules(event)
-                created_event = await self.event_repository.create(event)
-
-                if banner_image is None:
-                    return created_event
-
-                ensure_image_upload(banner_image)
-                extension = get_upload_extension(banner_image)
-
-                document = await self.document_repository.create(
-                    DocumentCreate(
-                        original_filename=banner_image.filename or f"banner.{extension}",
-                        content_type=banner_image.content_type or "application/octet-stream",
-                        extension=extension,
-                        size_bytes=0,
-                        event_id=created_event.id,
-                    )
-                )
-
-                saved_filename = build_document_filename(document.id, document.extension)
-                size_bytes = await save_upload_file(banner_image, saved_filename)
-                await self.document_repository.update_size_bytes(document, size_bytes)
-
-                await self.event_repository.update(
-                    created_event,
-                    EventUpdate(
-                        banner_img_url=build_document_url(document.id, document.extension)
-                    ),
-                )
-
-            return await self.event_repository.get_by_id(created_event.id) or created_event
-        except IntegrityError as exc:
-            delete_upload_by_filename(saved_filename)
+                return await self.event_repository.create(event)
+        except DuplicateKeyError as exc:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Event violates a uniqueness constraint",
-            ) from exc
-        except HTTPException:
-            delete_upload_by_filename(saved_filename)
-            raise
-        except Exception as exc:
-            delete_upload_by_filename(saved_filename)
-            logger.exception("Unexpected error while creating event with banner")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Could not create event with banner image",
             ) from exc
 
     async def _validate_create_rules(self, event: EventCreate) -> None:
