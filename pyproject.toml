@@ -14,7 +14,6 @@ dependencies = [
     "faker>=25.0.0",
     "python-dotenv>=1.2.2",
     "python-multipart>=0.0.28",
-    "motor>=3.7.1",
     "pydantic>=2.13.4",
     "pydantic-settings>=2.14.0",
     "scalar-fastapi>=1.8.1",
