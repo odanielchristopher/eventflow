@@ -11,7 +11,7 @@ from fastapi_pagination import Params, create_page
 from src.models.event import EventCreate, EventEntity, EventUpdate
 
 
-class SqlModelEventRepository:
+class BeanieEventRepository:
     def __init__(self, session: object | None = None) -> None:
         self.session = session
 

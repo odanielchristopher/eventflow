@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, Response, UploadFile, status
 from fastapi_pagination import Page, Params
-from fastapi.responses import FileResponse
 
 from src.dependencies.usecases import (
     get_create_document_usecase,
@@ -32,7 +31,7 @@ router = APIRouter(tags=["documents"])
     status_code=status.HTTP_201_CREATED,
 )
 async def create_document_for_event(
-    event_id: int,
+    event_id: str,
     file: UploadFile = File(...),
     usecase: CreateDocumentUseCase = Depends(get_create_document_usecase),
 ):
@@ -41,7 +40,7 @@ async def create_document_for_event(
 
 @router.get("/events/{event_id}/documents", response_model=Page[DocumentRead])
 async def list_event_documents(
-    event_id: int,
+    event_id: str,
     params: Params = Depends(),
     usecase: ListEventDocumentsUseCase = Depends(get_list_event_documents_usecase),
 ):
@@ -50,15 +49,15 @@ async def list_event_documents(
 
 @router.get("/documents/{document_id}", response_model=DocumentRead)
 async def get_document_by_id(
-    document_id: int,
+    document_id: str,
     usecase: GetDocumentByIdUseCase = Depends(get_document_by_id_usecase),
 ):
     return await usecase.execute(document_id)
 
 
-@router.get("/documents/{document_id}/download", response_class=FileResponse)
+@router.get("/documents/{document_id}/download")
 async def download_document(
-    document_id: int,
+    document_id: str,
     usecase: DownloadDocumentUseCase = Depends(get_download_document_usecase),
 ):
     return await usecase.execute(document_id)
@@ -66,7 +65,7 @@ async def download_document(
 
 @router.put("/documents/{document_id}", response_model=DocumentRead)
 async def replace_document(
-    document_id: int,
+    document_id: str,
     file: UploadFile = File(...),
     usecase: ReplaceDocumentUseCase = Depends(get_replace_document_usecase),
 ):
@@ -79,7 +78,7 @@ async def replace_document(
     response_model=None,
 )
 async def delete_document(
-    document_id: int,
+    document_id: str,
     usecase: DeleteDocumentUseCase = Depends(get_delete_document_usecase),
 ) -> Response:
     await usecase.execute(document_id)

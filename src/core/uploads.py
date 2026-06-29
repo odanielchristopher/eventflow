@@ -5,11 +5,6 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile, status
 
-from src.core.config import get_settings
-
-
-settings = get_settings()
-
 
 def get_upload_extension(upload: UploadFile) -> str:
     filename = upload.filename or ""
@@ -29,44 +24,36 @@ def get_upload_extension(upload: UploadFile) -> str:
     return extension
 
 
+def is_image_content_type(content_type: str | None) -> bool:
+    return bool(content_type and content_type.startswith("image/"))
+
+
+def ensure_document_upload(upload: UploadFile) -> None:
+    content_type = upload.content_type or ""
+    if is_image_content_type(content_type):
+        return
+
+    if content_type == "application/pdf":
+        return
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Document file must be an image or PDF",
+    )
+
+
+def build_document_object_name(document_id: str, extension: str) -> str:
+    normalized_extension = extension.lstrip(".")
+    return f"{document_id}.{normalized_extension}"
+
+
+def build_document_download_url(document_id: str) -> str:
+    return f"/documents/{document_id}/download"
+
+
 def ensure_image_upload(upload: UploadFile) -> None:
-    if not upload.content_type or not upload.content_type.startswith("image/"):
+    if not is_image_content_type(upload.content_type):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Banner file must be an image",
         )
-
-
-def build_document_filename(document_id: int, extension: str) -> str:
-    return f"{document_id}.{extension}"
-
-
-def build_document_url(document_id: int, extension: str) -> str:
-    return f"/uploads/{build_document_filename(document_id, extension)}"
-
-
-async def save_upload_file(upload: UploadFile, filename: str) -> int:
-    settings.resolved_upload_dir.mkdir(parents=True, exist_ok=True)
-    destination = settings.resolved_upload_dir / filename
-    content = await upload.read()
-    destination.write_bytes(content)
-    return len(content)
-
-
-def delete_upload_by_url(file_url: str | None) -> None:
-    if not file_url or not file_url.startswith("/uploads/"):
-        return
-
-    filename = file_url.removeprefix("/uploads/")
-    path = settings.resolved_upload_dir / filename
-    if path.exists():
-        path.unlink()
-
-
-def delete_upload_by_filename(filename: str | None) -> None:
-    if not filename:
-        return
-
-    path = settings.resolved_upload_dir / filename
-    if path.exists():
-        path.unlink()

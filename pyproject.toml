@@ -12,6 +12,7 @@ dependencies = [
     "fastapi[standard]>=0.136.1",
     "fastapi-pagination>=0.15.12",
     "faker>=25.0.0",
+    "minio>=7.2.18",
     "python-dotenv>=1.2.2",
     "python-multipart>=0.0.28",
     "pydantic>=2.13.4",

@@ -14,7 +14,6 @@ class Event(Document):
     location: str = Field(max_length=255)
     capacity: int = Field(gt=0)
     sub_price: Decimal = Field(decimal_places=2, max_digits=10)
-    document_ids: list[str] = Field(default_factory=list)
 
     class Settings:
         name = "events"

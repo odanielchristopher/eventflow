@@ -4,6 +4,7 @@ from beanie import init_beanie
 from pymongo import AsyncMongoClient
 
 from src.core.config import get_settings
+from src.models.document import Document
 from src.models.event import EventEntity
 from src.models.speaker import Speaker
 from src.models.subscription import Subscription
@@ -18,7 +19,7 @@ async def init_mongo() -> None:
     mongo_client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(
         database=mongo_client[settings.mongodb_database],
-        document_models=[EventEntity, Speaker, Subscription],
+        document_models=[Document, EventEntity, Speaker, Subscription],
     )
 
 

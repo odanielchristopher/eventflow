@@ -3,22 +3,26 @@ from __future__ import annotations
 from fastapi import HTTPException, status
 from pymongo.errors import DuplicateKeyError
 
+from src.contracts.document_repository import DocumentRepositoryProtocol
 from src.contracts.event_repository import EventRepositoryProtocol
-from src.models.event import EventEntity, EventUpdate
+from src.models.event import EventEntity, EventRead, EventUpdate
+from src.usecases.event.presentation import serialize_event
 
 
 class UpdateEventUseCase:
     def __init__(
         self,
         event_repository: EventRepositoryProtocol,
+        document_repository: DocumentRepositoryProtocol,
     ) -> None:
         self.event_repository = event_repository
+        self.document_repository = document_repository
 
     async def execute(
         self,
         event_id: str,
         update_dto: EventUpdate,
-    ) -> EventEntity:
+    ) -> EventRead:
         try:
             async with self.event_repository.transaction():
                 event = await self.event_repository.get_by_id(event_id)
@@ -27,7 +31,9 @@ class UpdateEventUseCase:
                     raise HTTPException(status_code=404, detail="Event not found")
 
                 await self._validate_update_rules(event, update_dto)
-                return await self.event_repository.update(event, update_dto)
+                updated_event = await self.event_repository.update(event, update_dto)
+                documents = await self.document_repository.list_by_event_ids([event_id])
+                return serialize_event(updated_event, documents)
         except DuplicateKeyError as exc:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,

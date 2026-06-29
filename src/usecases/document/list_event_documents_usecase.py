@@ -18,7 +18,7 @@ class ListEventDocumentsUseCase:
         self.event_repository = event_repository
         self.document_repository = document_repository
 
-    async def execute(self, event_id: int, params: Params) -> Any:
+    async def execute(self, event_id: str, params: Params) -> Any:
         event = await self.event_repository.get_by_id(event_id)
         if event is None:
             raise HTTPException(status_code=404, detail="Event not found")

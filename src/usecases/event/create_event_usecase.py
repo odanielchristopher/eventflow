@@ -4,7 +4,8 @@ from fastapi import HTTPException, status
 from pymongo.errors import DuplicateKeyError
 
 from src.contracts.event_repository import EventRepositoryProtocol
-from src.models.event import EventCreate, EventEntity
+from src.models.event import EventCreate, EventRead
+from src.usecases.event.presentation import serialize_event
 
 
 class CreateEventUseCase:
@@ -17,11 +18,12 @@ class CreateEventUseCase:
     async def execute(
         self,
         event: EventCreate,
-    ) -> EventEntity:
+    ) -> EventRead:
         try:
             async with self.event_repository.transaction():
                 await self._validate_create_rules(event)
-                return await self.event_repository.create(event)
+                created_event = await self.event_repository.create(event)
+                return serialize_event(created_event, [])
         except DuplicateKeyError as exc:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,

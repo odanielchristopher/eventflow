@@ -10,7 +10,7 @@ class GetDocumentByIdUseCase:
     def __init__(self, document_repository: DocumentRepositoryProtocol) -> None:
         self.document_repository = document_repository
 
-    async def execute(self, document_id: int) -> Document:
+    async def execute(self, document_id: str) -> Document:
         document = await self.document_repository.get_by_id(document_id)
         if document is None:
             raise HTTPException(status_code=404, detail="Document not found")
