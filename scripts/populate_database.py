@@ -9,22 +9,17 @@ from decimal import Decimal
 from pathlib import Path
 
 from faker import Faker
-from sqlalchemy import func, select
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.infra.db.models import (
-    Activity,
-    ActivitySpeaker,
-    CheckIn,
-    Document,
-    Event,
-    Speaker,
-    Subscription,
-)
-from src.infra.db.session import session_factory
+from src.infra.db.mongo import close_mongo, init_mongo
+from src.models.checkin import CheckIn
+from src.models.document import Document
+from src.models.event import EventEntity
+from src.models.speaker import Speaker
+from src.models.subscription import Subscription
 
 EVENT_FORMATS = [
     "Congresso Brasileiro de {topic}",
@@ -81,17 +76,6 @@ SPECIALTIES = [
     "Produto Digital",
 ]
 
-ACTIVITY_TYPES = [
-    "Palestra",
-    "Mesa-redonda",
-    "Oficina",
-    "Painel",
-    "Mentoria coletiva",
-    "Estudo de caso",
-    "Sessao tecnica",
-    "Laboratorio pratico",
-]
-
 DOCUMENT_KINDS = [
     ("programacao", "application/pdf", ".pdf"),
     ("mapa-do-evento", "application/pdf", ".pdf"),
@@ -113,7 +97,7 @@ ACCESS_POINTS = [
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Popula o banco configurado no .env com dados realistas para todas as entidades."
+        description="Popula o MongoDB configurado no .env com dados realistas."
     )
     parser.add_argument(
         "--count-per-entity",
@@ -128,6 +112,11 @@ def parse_args() -> argparse.Namespace:
         default=42,
         help="Seed usada para tornar a geracao reproduzivel (padrao: 42).",
     )
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Remove os dados das colecoes antes de popular novamente.",
+    )
     return parser.parse_args()
 
 
@@ -136,12 +125,12 @@ def money(value: float) -> Decimal:
 
 
 def build_event(
-    fake: Faker,
     number: int,
+    fake: Faker,
     used_titles: set[str],
     used_descriptions: set[str],
     used_date_locations: set[tuple[object, str]],
-) -> Event:
+) -> EventEntity:
     while True:
         topic = random.choice(EVENT_TOPICS)
         title = f"{random.choice(EVENT_FORMATS).format(topic=topic)} {number:04d}"
@@ -150,7 +139,7 @@ def build_event(
             break
 
     while True:
-        event_date = fake.date_between(start_date="-180d", end_date="+720d")
+        event_date = fake.date_between(start_date="+15d", end_date="+720d")
         location = random.choice(EVENT_LOCATIONS)
         date_location = (event_date, location)
         if date_location not in used_date_locations:
@@ -167,7 +156,7 @@ def build_event(
             used_descriptions.add(description)
             break
 
-    return Event(
+    return EventEntity(
         title=title,
         description=description,
         banner_img_url=f"https://cdn.eventflow.local/banners/evento-{number:04d}.jpg",
@@ -178,64 +167,69 @@ def build_event(
     )
 
 
-def build_speaker(fake: Faker, number: int) -> Speaker:
+def build_speaker(number: int, fake: Faker) -> Speaker:
     specialty = random.choice(SPECIALTIES)
+    name = fake.name()
     return Speaker(
-        name=fake.name(),
+        name=name,
         specialty=specialty,
         bio=(
-            f"{fake.name()} atua em {specialty.lower()} e participa de projetos, aulas e "
+            f"{name} atua em {specialty.lower()} e participa de projetos, aulas e "
             f"consultorias para organizacoes brasileiras. Perfil de carga {number:04d}."
         ),
     )
 
 
-def build_activity(event: Event, number: int) -> Activity:
-    topic = random.choice(EVENT_TOPICS)
-    scheduled_hour = random.randint(8, 20)
-    scheduled_minute = random.choice([0, 15, 30, 45])
-    return Activity(
-        title=f"{random.choice(ACTIVITY_TYPES)}: {topic} na pratica {number:04d}",
-        scheduled_at=time(hour=scheduled_hour, minute=scheduled_minute),
-        event_id=event.id,
-    )
-
-
-def build_document(event: Event, number: int) -> Document:
+def build_document(number: int, event: EventEntity) -> Document:
     kind, content_type, extension = random.choice(DOCUMENT_KINDS)
     return Document(
-        original_filename=f"{kind}-evento-{event.id}-{number:04d}{extension}",
+        original_filename=f"{kind}-evento-{str(event.id)}-{number:04d}{extension}",
         content_type=content_type,
         extension=extension,
         size_bytes=random.randint(64_000, 8_000_000),
-        event_id=event.id,
+        event_id=str(event.id),
     )
 
 
-def build_subscription(fake: Faker, event: Event, number: int) -> Subscription:
-    registered_at = event.date - timedelta(days=random.randint(1, 120))
-    email_user = fake.user_name().replace(".", "-")
-    return Subscription(
-        name=fake.name(),
-        email=f"participante.{number:04d}.{email_user}@example.com",
-        price=event.sub_price,
-        registered_at=registered_at,
-        event_id=event.id,
-    )
-
-
-def build_check_in(subscription: Subscription, event: Event) -> CheckIn:
+def build_check_in(event: EventEntity) -> CheckIn:
     return CheckIn(
         timestamp=datetime.combine(
             event.date,
             time(hour=random.randint(7, 21), minute=random.randint(0, 59)),
         ),
         access_point=random.choice(ACCESS_POINTS),
-        subscription_id=subscription.id,
     )
 
 
-async def run_seed(count_per_entity: int, seed: int) -> None:
+def build_subscription(number: int, fake: Faker, event: EventEntity) -> Subscription:
+    registered_at = event.date - timedelta(days=random.randint(1, 120))
+    email_user = fake.user_name().replace(".", "-")
+    has_check_in = random.random() < 0.75
+    return Subscription(
+        name=fake.name(),
+        email=f"participante.{number:04d}.{email_user}@example.com",
+        price=event.sub_price,
+        registered_at=registered_at,
+        event_id=str(event.id),
+        check_in=build_check_in(event) if has_check_in else None,
+    )
+
+
+async def reset_collections() -> None:
+    await Subscription.delete_all()
+    await Document.delete_all()
+    await Speaker.delete_all()
+    await EventEntity.delete_all()
+
+
+async def next_sequence_start(model, field: str, fallback: int = 0) -> int:
+    total = await model.count()
+    if total == 0:
+        return fallback + 1
+    return total + fallback + 1
+
+
+async def run_seed(count_per_entity: int, seed: int, reset: bool) -> None:
     if count_per_entity < 100:
         raise SystemExit("Use --count-per-entity com pelo menos 100 registros.")
 
@@ -243,90 +237,68 @@ async def run_seed(count_per_entity: int, seed: int) -> None:
     fake = Faker("pt_BR")
     fake.seed_instance(seed)
 
-    async with session_factory() as session:
-        existing_events = (await session.execute(select(Event))).scalars().all()
+    await init_mongo()
+    try:
+        if reset:
+            await reset_collections()
+
+        existing_events = await EventEntity.find_all().to_list()
         used_titles = {event.title for event in existing_events}
         used_descriptions = {event.description for event in existing_events}
         used_date_locations = {(event.date, event.location) for event in existing_events}
-
-        max_event_id = (await session.execute(select(func.max(Event.id)))).scalar_one() or 0
-        max_speaker_id = (await session.execute(select(func.max(Speaker.id)))).scalar_one() or 0
-        max_subscription_id = (await session.execute(select(func.max(Subscription.id)))).scalar_one() or 0
+        event_start = await next_sequence_start(EventEntity, "title")
+        speaker_start = await next_sequence_start(Speaker, "name")
+        subscription_start = await next_sequence_start(Subscription, "email")
 
         events = [
             build_event(
+                event_start + index,
                 fake,
-                max_event_id + index + 1,
                 used_titles,
                 used_descriptions,
                 used_date_locations,
             )
             for index in range(count_per_entity)
         ]
+        await EventEntity.insert_many(events)
+
         speakers = [
-            build_speaker(fake, max_speaker_id + index + 1)
+            build_speaker(speaker_start + index, fake)
             for index in range(count_per_entity)
         ]
+        await Speaker.insert_many(speakers)
 
-        session.add_all(events)
-        session.add_all(speakers)
-        await session.flush()
-
-        activities = [
-            build_activity(events[index % len(events)], index + 1)
-            for index in range(count_per_entity)
-        ]
         documents = [
-            build_document(events[index % len(events)], index + 1)
+            build_document(index + 1, events[index % len(events)])
             for index in range(count_per_entity)
         ]
+        await Document.insert_many(documents)
+
         subscriptions = [
             build_subscription(
+                subscription_start + index,
                 fake,
                 events[index % len(events)],
-                max_subscription_id + index + 1,
             )
             for index in range(count_per_entity)
         ]
+        await Subscription.insert_many(subscriptions)
 
-        session.add_all(activities)
-        session.add_all(documents)
-        session.add_all(subscriptions)
-        await session.flush()
+        check_in_count = sum(1 for subscription in subscriptions if subscription.check_in)
 
-        activity_speakers = []
-        for index, activity in enumerate(activities):
-            selected_speakers = random.sample(
-                speakers,
-                k=random.randint(1, min(3, len(speakers))),
-            )
-            activity_speakers.extend(
-                ActivitySpeaker(activity_id=activity.id, speaker_id=speaker.id)
-                for speaker in selected_speakers
-            )
-
-        check_ins = [
-            build_check_in(subscription, events[index % len(events)])
-            for index, subscription in enumerate(subscriptions)
-        ]
-
-        session.add_all(activity_speakers)
-        session.add_all(check_ins)
-        await session.commit()
-
-    print("Populate concluido com sucesso:")
-    print(f"- {len(events)} eventos")
-    print(f"- {len(speakers)} palestrantes")
-    print(f"- {len(activities)} atividades")
-    print(f"- {len(activity_speakers)} vinculos entre atividades e palestrantes")
-    print(f"- {len(documents)} documentos")
-    print(f"- {len(subscriptions)} inscricoes")
-    print(f"- {len(check_ins)} check-ins")
+        print("Populate concluido com sucesso:")
+        print(f"- {len(events)} eventos")
+        print(f"- {len(speakers)} palestrantes")
+        print(f"- {len(documents)} documentos")
+        print(f"- {len(subscriptions)} inscricoes")
+        print(f"- {check_in_count} check-ins embutidos em inscricoes")
+    finally:
+        await close_mongo()
 
 
 def main() -> None:
     args = parse_args()
-    asyncio.run(run_seed(args.count_per_entity, args.seed))
+    asyncio.run(run_seed(args.count_per_entity, args.seed, args.reset))
 
 
 if __name__ == "__main__":
