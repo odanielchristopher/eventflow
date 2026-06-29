@@ -33,15 +33,23 @@ async def create_speaker(
 
 @router.get("", response_model=Page[SpeakerRead])
 async def list_speakers(
+    name: str | None = None,
+    specialty: str | None = None,
+    case_sensitive: bool = False,
     params: Params = Depends(),
     usecase: ListSpeakersUseCase = Depends(get_list_speakers_usecase),
 ):
-    return await usecase.execute(params)
+    return await usecase.execute(
+        params,
+        name=name,
+        specialty=specialty,
+        case_sensitive=case_sensitive,
+    )
 
 
 @router.get("/{speaker_id}", response_model=SpeakerRead)
 async def get_speaker_by_id(
-    speaker_id: int,
+    speaker_id: str,
     usecase: GetSpeakerByIdUseCase = Depends(get_speaker_by_id_usecase),
 ):
     return await usecase.execute(speaker_id)
@@ -49,7 +57,7 @@ async def get_speaker_by_id(
 
 @router.put("/{speaker_id}", response_model=SpeakerRead)
 async def update_speaker(
-    speaker_id: int,
+    speaker_id: str,
     payload: SpeakerUpdate,
     usecase: UpdateSpeakerUseCase = Depends(get_update_speaker_usecase),
 ):
@@ -62,7 +70,7 @@ async def update_speaker(
     response_model=None,
 )
 async def delete_speaker(
-    speaker_id: int,
+    speaker_id: str,
     usecase: DeleteSpeakerUseCase = Depends(get_delete_speaker_usecase),
 ) -> Response:
     await usecase.execute(speaker_id)

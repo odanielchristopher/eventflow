@@ -14,7 +14,7 @@ from src.infra.repositories.activity_repository import SqlModelActivityRepositor
 from src.infra.repositories.checkin_repository import SqlModelCheckInRepository
 from src.infra.repositories.document_repository import SqlModelDocumentRepository
 from src.infra.repositories.event_repository import SqlModelEventRepository
-from src.infra.repositories.speaker_repository import SqlModelSpeakerRepository
+from src.infra.repositories.speaker_repository import BeanieSpeakerRepository
 from src.infra.repositories.subscription_repository import SqlModelSubscriptionRepository
 from src.usecases.activity import (
     CreateActivityUseCase,
@@ -167,38 +167,38 @@ def get_delete_subscription_usecase(
 
 
 def get_create_speaker_usecase(
-    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+    speaker_repository: BeanieSpeakerRepository = Depends(get_speaker_repository),
 ) -> CreateSpeakerUseCase:
     return CreateSpeakerUseCase(speaker_repository)
 
 
 def get_list_speakers_usecase(
-    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+    speaker_repository: BeanieSpeakerRepository = Depends(get_speaker_repository),
 ) -> ListSpeakersUseCase:
     return ListSpeakersUseCase(speaker_repository)
 
 
 def get_speaker_by_id_usecase(
-    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+    speaker_repository: BeanieSpeakerRepository = Depends(get_speaker_repository),
 ) -> GetSpeakerByIdUseCase:
     return GetSpeakerByIdUseCase(speaker_repository)
 
 
 def get_update_speaker_usecase(
-    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+    speaker_repository: BeanieSpeakerRepository = Depends(get_speaker_repository),
 ) -> UpdateSpeakerUseCase:
     return UpdateSpeakerUseCase(speaker_repository)
 
 
 def get_delete_speaker_usecase(
-    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+    speaker_repository: BeanieSpeakerRepository = Depends(get_speaker_repository),
 ) -> DeleteSpeakerUseCase:
     return DeleteSpeakerUseCase(speaker_repository)
 
 
 def get_create_activity_usecase(
     event_repository: SqlModelEventRepository = Depends(get_event_repository),
-    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+    speaker_repository: BeanieSpeakerRepository = Depends(get_speaker_repository),
     activity_repository: SqlModelActivityRepository = Depends(get_activity_repository),
 ) -> CreateActivityUseCase:
     return CreateActivityUseCase(
@@ -224,7 +224,7 @@ def get_activity_by_id_usecase(
 
 def get_update_activity_usecase(
     event_repository: SqlModelEventRepository = Depends(get_event_repository),
-    speaker_repository: SqlModelSpeakerRepository = Depends(get_speaker_repository),
+    speaker_repository: BeanieSpeakerRepository = Depends(get_speaker_repository),
     activity_repository: SqlModelActivityRepository = Depends(get_activity_repository),
 ) -> UpdateActivityUseCase:
     return UpdateActivityUseCase(

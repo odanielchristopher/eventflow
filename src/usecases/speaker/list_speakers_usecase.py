@@ -11,5 +11,17 @@ class ListSpeakersUseCase:
     def __init__(self, speaker_repository: SpeakerRepositoryProtocol) -> None:
         self.speaker_repository = speaker_repository
 
-    async def execute(self, params: Params) -> Any:
-        return await self.speaker_repository.list_paginated(params)
+    async def execute(
+        self,
+        params: Params,
+        *,
+        name: str | None = None,
+        specialty: str | None = None,
+        case_sensitive: bool = False,
+    ) -> Any:
+        return await self.speaker_repository.list_paginated(
+            params,
+            name=name,
+            specialty=specialty,
+            case_sensitive=case_sensitive,
+        )

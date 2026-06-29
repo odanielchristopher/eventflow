@@ -10,7 +10,7 @@ class UpdateSpeakerUseCase:
     def __init__(self, speaker_repository: SpeakerRepositoryProtocol) -> None:
         self.speaker_repository = speaker_repository
 
-    async def execute(self, speaker_id: int, data: SpeakerUpdate) -> Speaker:
+    async def execute(self, speaker_id: str, data: SpeakerUpdate) -> Speaker:
         async with self.speaker_repository.transaction():
             speaker = await self.speaker_repository.get_by_id(speaker_id)
             if speaker is None:
