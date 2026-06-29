@@ -4,7 +4,6 @@ from fastapi import Depends
 
 from src.dependencies.repositories import (
     get_activity_repository,
-    get_check_in_repository,
     get_document_repository,
     get_event_repository,
     get_speaker_repository,
@@ -12,7 +11,6 @@ from src.dependencies.repositories import (
 )
 from src.dependencies.storage import get_minio_storage_service
 from src.infra.repositories.activity_repository import SqlModelActivityRepository
-from src.infra.repositories.checkin_repository import SqlModelCheckInRepository
 from src.infra.repositories.document_repository import BeanieDocumentRepository
 from src.infra.repositories.event_repository import BeanieEventRepository
 from src.infra.repositories.speaker_repository import BeanieSpeakerRepository
@@ -24,13 +22,6 @@ from src.usecases.activity import (
     GetActivityByIdUseCase,
     ListActivitiesUseCase,
     UpdateActivityUseCase,
-)
-from src.usecases.checkin import (
-    CreateCheckInUseCase,
-    DeleteCheckInUseCase,
-    GetCheckInByIdUseCase,
-    ListCheckInsUseCase,
-    UpdateCheckInUseCase,
 )
 from src.usecases.document import (
     CreateDocumentUseCase,
@@ -248,52 +239,3 @@ def get_delete_activity_usecase(
     activity_repository: SqlModelActivityRepository = Depends(get_activity_repository),
 ) -> DeleteActivityUseCase:
     return DeleteActivityUseCase(event_repository, activity_repository)
-
-
-def get_create_check_in_usecase(
-    event_repository: BeanieEventRepository = Depends(get_event_repository),
-    subscription_repository: SqlModelSubscriptionRepository = Depends(
-        get_subscription_repository,
-    ),
-    check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
-) -> CreateCheckInUseCase:
-    return CreateCheckInUseCase(
-        event_repository,
-        subscription_repository,
-        check_in_repository,
-    )
-
-
-def get_list_check_ins_usecase(
-    event_repository: BeanieEventRepository = Depends(get_event_repository),
-    check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
-) -> ListCheckInsUseCase:
-    return ListCheckInsUseCase(event_repository, check_in_repository)
-
-
-def get_check_in_by_id_usecase(
-    event_repository: BeanieEventRepository = Depends(get_event_repository),
-    check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
-) -> GetCheckInByIdUseCase:
-    return GetCheckInByIdUseCase(event_repository, check_in_repository)
-
-
-def get_update_check_in_usecase(
-    event_repository: BeanieEventRepository = Depends(get_event_repository),
-    subscription_repository: SqlModelSubscriptionRepository = Depends(
-        get_subscription_repository,
-    ),
-    check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
-) -> UpdateCheckInUseCase:
-    return UpdateCheckInUseCase(
-        event_repository,
-        subscription_repository,
-        check_in_repository,
-    )
-
-
-def get_delete_check_in_usecase(
-    event_repository: BeanieEventRepository = Depends(get_event_repository),
-    check_in_repository: SqlModelCheckInRepository = Depends(get_check_in_repository),
-) -> DeleteCheckInUseCase:
-    return DeleteCheckInUseCase(event_repository, check_in_repository)
