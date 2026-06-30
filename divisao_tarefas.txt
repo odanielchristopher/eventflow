@@ -1,5 +1,6 @@
 Daniel Christopher:
 - CRUD speaker
+- Endpoints de análises
 - Implementação da arquitetura inicial 
 - CRUD events 
 - CRUD subscriptions
