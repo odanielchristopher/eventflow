@@ -10,6 +10,7 @@ from scalar_fastapi import get_scalar_api_reference
 from src.core.config import get_settings
 from src.dependencies.storage import get_minio_storage_service
 from src.infra.db.mongo import close_mongo, init_mongo
+from src.routes import activity_router
 from src.routes import document_router
 from src.routes import event_router
 from src.routes import hash_router
@@ -46,6 +47,7 @@ def create_app() -> FastAPI:
     app.include_router(hash_router)
     app.include_router(speaker_router)
     app.include_router(subscription_router)
+    app.include_router(activity_router)
     add_pagination(app)
 
     @app.get("/")

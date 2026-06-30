@@ -15,7 +15,7 @@ class DeleteActivityUseCase:
         self.event_repository = event_repository
         self.activity_repository = activity_repository
 
-    async def execute(self, event_id: int, activity_id: int) -> None:
+    async def execute(self, event_id: str, activity_id: str) -> None:
         async with self.activity_repository.transaction():
             event = await self.event_repository.get_by_id(event_id)
             if event is None:

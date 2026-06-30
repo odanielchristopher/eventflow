@@ -10,7 +10,7 @@ from src.dependencies.repositories import (
     get_subscription_repository,
 )
 from src.dependencies.storage import get_minio_storage_service
-from src.infra.repositories.activity_repository import SqlModelActivityRepository
+from src.infra.repositories.activity_repository import BeanieActivityRepository
 from src.infra.repositories.document_repository import BeanieDocumentRepository
 from src.infra.repositories.event_repository import BeanieEventRepository
 from src.infra.repositories.speaker_repository import BeanieSpeakerRepository
@@ -244,7 +244,7 @@ def get_delete_speaker_usecase(
 def get_create_activity_usecase(
     event_repository: BeanieEventRepository = Depends(get_event_repository),
     speaker_repository: BeanieSpeakerRepository = Depends(get_speaker_repository),
-    activity_repository: SqlModelActivityRepository = Depends(get_activity_repository),
+    activity_repository: BeanieActivityRepository = Depends(get_activity_repository),
 ) -> CreateActivityUseCase:
     return CreateActivityUseCase(
         event_repository,
@@ -255,22 +255,32 @@ def get_create_activity_usecase(
 
 def get_list_activities_usecase(
     event_repository: BeanieEventRepository = Depends(get_event_repository),
-    activity_repository: SqlModelActivityRepository = Depends(get_activity_repository),
+    activity_repository: BeanieActivityRepository = Depends(get_activity_repository),
+    speaker_repository: BeanieSpeakerRepository = Depends(get_speaker_repository),
 ) -> ListActivitiesUseCase:
-    return ListActivitiesUseCase(event_repository, activity_repository)
+    return ListActivitiesUseCase(
+        event_repository,
+        activity_repository,
+        speaker_repository,
+    )
 
 
 def get_activity_by_id_usecase(
     event_repository: BeanieEventRepository = Depends(get_event_repository),
-    activity_repository: SqlModelActivityRepository = Depends(get_activity_repository),
+    activity_repository: BeanieActivityRepository = Depends(get_activity_repository),
+    speaker_repository: BeanieSpeakerRepository = Depends(get_speaker_repository),
 ) -> GetActivityByIdUseCase:
-    return GetActivityByIdUseCase(event_repository, activity_repository)
+    return GetActivityByIdUseCase(
+        event_repository,
+        activity_repository,
+        speaker_repository,
+    )
 
 
 def get_update_activity_usecase(
     event_repository: BeanieEventRepository = Depends(get_event_repository),
     speaker_repository: BeanieSpeakerRepository = Depends(get_speaker_repository),
-    activity_repository: SqlModelActivityRepository = Depends(get_activity_repository),
+    activity_repository: BeanieActivityRepository = Depends(get_activity_repository),
 ) -> UpdateActivityUseCase:
     return UpdateActivityUseCase(
         event_repository,
@@ -281,6 +291,6 @@ def get_update_activity_usecase(
 
 def get_delete_activity_usecase(
     event_repository: BeanieEventRepository = Depends(get_event_repository),
-    activity_repository: SqlModelActivityRepository = Depends(get_activity_repository),
+    activity_repository: BeanieActivityRepository = Depends(get_activity_repository),
 ) -> DeleteActivityUseCase:
     return DeleteActivityUseCase(event_repository, activity_repository)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import time as time_type
+
 from fastapi import APIRouter, Depends, Response, status
 from fastapi_pagination import Page, Params
 
@@ -25,7 +27,7 @@ router = APIRouter(prefix="/events/{event_id}/activities", tags=["activities"])
 
 @router.post("", response_model=ActivityRead, status_code=status.HTTP_201_CREATED)
 async def create_activity(
-    event_id: int,
+    event_id: str,
     payload: ActivityCreate,
     usecase: CreateActivityUseCase = Depends(get_create_activity_usecase),
 ):
@@ -34,17 +36,30 @@ async def create_activity(
 
 @router.get("", response_model=Page[ActivityRead])
 async def list_activities(
-    event_id: int,
+    event_id: str,
+    title: str | None = None,
+    speaker_id: str | None = None,
+    scheduled_from: time_type | None = None,
+    scheduled_to: time_type | None = None,
+    case_sensitive: bool = False,
     params: Params = Depends(),
     usecase: ListActivitiesUseCase = Depends(get_list_activities_usecase),
 ):
-    return await usecase.execute(event_id, params)
+    return await usecase.execute(
+        event_id,
+        params,
+        title=title,
+        speaker_id=speaker_id,
+        scheduled_from=scheduled_from,
+        scheduled_to=scheduled_to,
+        case_sensitive=case_sensitive,
+    )
 
 
 @router.get("/{activity_id}", response_model=ActivityRead)
 async def get_activity_by_id(
-    event_id: int,
-    activity_id: int,
+    event_id: str,
+    activity_id: str,
     usecase: GetActivityByIdUseCase = Depends(get_activity_by_id_usecase),
 ):
     return await usecase.execute(event_id, activity_id)
@@ -52,8 +67,8 @@ async def get_activity_by_id(
 
 @router.put("/{activity_id}", response_model=ActivityRead)
 async def update_activity(
-    event_id: int,
-    activity_id: int,
+    event_id: str,
+    activity_id: str,
     payload: ActivityUpdate,
     usecase: UpdateActivityUseCase = Depends(get_update_activity_usecase),
 ):
@@ -66,8 +81,8 @@ async def update_activity(
     response_model=None,
 )
 async def delete_activity(
-    event_id: int,
-    activity_id: int,
+    event_id: str,
+    activity_id: str,
     usecase: DeleteActivityUseCase = Depends(get_delete_activity_usecase),
 ) -> Response:
     await usecase.execute(event_id, activity_id)
