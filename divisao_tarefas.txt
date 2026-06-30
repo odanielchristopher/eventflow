@@ -1,11 +1,12 @@
 Daniel Christopher:
+- CRUD speaker
 - Implementação da arquitetura inicial 
 - CRUD events 
 - CRUD subscriptions
-- conexão supabase
+- crud Documents
 
 Lucas Ferreira: 
-- CRUD speaker
+- criação dockerFile e compose
 - CRUD Activity 
 - CRUD CHECK_IN
 - Populate
