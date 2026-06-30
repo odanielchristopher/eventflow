@@ -4,12 +4,15 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from src.models.document.roles import DocumentRole
+
 
 class DocumentBase(BaseModel):
     original_filename: str = Field(max_length=255)
     content_type: str = Field(max_length=255)
     extension: str = Field(max_length=20)
     size_bytes: int = Field(ge=0)
+    role: DocumentRole | None = None
 
 
 class DocumentCreate(DocumentBase):
@@ -22,6 +25,7 @@ class DocumentUpdate(BaseModel):
     extension: str | None = Field(default=None, max_length=20)
     size_bytes: int | None = Field(default=None, ge=0)
     event_id: str | None = None
+    role: DocumentRole | None = None
 
 
 class DocumentRead(DocumentBase):

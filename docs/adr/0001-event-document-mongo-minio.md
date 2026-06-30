@@ -11,11 +11,15 @@ O trabalho exige que os metadados dos documentos sejam persistidos no MongoDB e 
 ## Decisões
 
 - `Document.event_id` é a única fonte de verdade da associação com `Event`.
+- `POST /events` cria o evento e seus dois documentos principais no mesmo `multipart/form-data`.
+- Os dois documentos principais do evento usam `role` explícito:
+  - `banner_image`
+  - `attachment_pdf`
+- `PUT /events/{event_id}` atualiza dados do evento e pode substituir esses documentos por `role`.
 - O arquivo físico do documento é armazenado no MinIO; o Mongo guarda apenas os metadados.
 - O nome físico do objeto segue o padrão `<document_id>.<extension>`.
 - `banner_img_url` continua pertencendo a `Event`.
-- Upload de documento de imagem atualiza `banner_img_url` para `/documents/{document_id}/download`.
-- Upload de PDF não atualiza `banner_img_url`.
+- Apenas o documento com `role=banner_image` controla `banner_img_url`.
 - Se o documento removido ou substituído era o banner atual, `banner_img_url` é limpo.
 - O download público da aplicação continua mediado pela API em `/documents/{document_id}/download`, sem expor URL interna do MinIO.
 

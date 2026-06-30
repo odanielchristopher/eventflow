@@ -7,11 +7,9 @@ from fastapi import HTTPException, UploadFile, status
 from src.contracts.document_repository import DocumentRepositoryProtocol
 from src.contracts.event_repository import EventRepositoryProtocol
 from src.core.uploads import (
-    build_document_download_url,
     build_document_object_name,
     ensure_document_upload,
     get_upload_extension,
-    is_image_content_type,
 )
 from src.models.document import Document, DocumentCreate
 from src.infra.storage import MinioStorageService
@@ -50,18 +48,13 @@ class CreateDocumentUseCase:
                         extension=extension,
                         size_bytes=0,
                         event_id=event_id,
+                        role=None,
                     )
                 )
 
                 object_name = build_document_object_name(str(document.id), document.extension)
                 size_bytes = await self.storage_service.upload_file(upload, object_name)
                 document = await self.document_repository.update_size_bytes(document, size_bytes)
-
-                if is_image_content_type(document.content_type):
-                    await self.event_repository.set_banner_url(
-                        event,
-                        build_document_download_url(str(document.id)),
-                    )
                 return document
         except HTTPException:
             if object_name is not None:

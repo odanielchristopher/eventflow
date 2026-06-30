@@ -7,6 +7,7 @@ from fastapi import HTTPException, status
 from src.contracts.document_repository import DocumentRepositoryProtocol
 from src.contracts.event_repository import EventRepositoryProtocol
 from src.core.uploads import build_document_download_url, build_document_object_name
+from src.models.document.roles import BANNER_IMAGE_ROLE
 from src.infra.storage import MinioStorageService
 
 
@@ -38,7 +39,10 @@ class DeleteDocumentUseCase:
                 await self.document_repository.delete(document)
 
                 if event is not None and event.banner_img_url:
-                    if event.banner_img_url == build_document_download_url(str(document.id)):
+                    if (
+                        document.role == BANNER_IMAGE_ROLE
+                        and event.banner_img_url == build_document_download_url(str(document.id))
+                    ):
                         await self.event_repository.set_banner_url(event, None)
 
             await self.storage_service.delete_file(object_name)

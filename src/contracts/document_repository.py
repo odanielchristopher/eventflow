@@ -6,7 +6,7 @@ from typing import Protocol
 
 from fastapi_pagination import Params
 
-from src.models.document import Document, DocumentCreate, DocumentUpdate
+from src.models.document import Document, DocumentCreate, DocumentRole, DocumentUpdate
 
 
 class DocumentRepositoryProtocol(Protocol):
@@ -19,6 +19,12 @@ class DocumentRepositoryProtocol(Protocol):
     async def list_by_event_id_paginated(self, event_id: str, params: Params) -> Any: ...
 
     async def list_by_event_ids(self, event_ids: list[str]) -> list[Document]: ...
+
+    async def get_by_event_id_and_role(
+        self,
+        event_id: str,
+        role: DocumentRole,
+    ) -> Document | None: ...
 
     async def update_size_bytes(self, document: Document, size_bytes: int) -> Document: ...
 

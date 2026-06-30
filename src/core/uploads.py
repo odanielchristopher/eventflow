@@ -5,6 +5,8 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile, status
 
+from src.models.document.roles import ATTACHMENT_PDF_ROLE, BANNER_IMAGE_ROLE
+
 
 def get_upload_extension(upload: UploadFile) -> str:
     filename = upload.filename or ""
@@ -40,6 +42,26 @@ def ensure_document_upload(upload: UploadFile) -> None:
         status_code=status.HTTP_400_BAD_REQUEST,
         detail="Document file must be an image or PDF",
     )
+
+
+def ensure_pdf_upload(upload: UploadFile) -> None:
+    if upload.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Attachment file must be a PDF",
+        )
+
+
+def ensure_upload_matches_role(upload: UploadFile, role: str | None) -> None:
+    if role == BANNER_IMAGE_ROLE:
+        ensure_image_upload(upload)
+        return
+
+    if role == ATTACHMENT_PDF_ROLE:
+        ensure_pdf_upload(upload)
+        return
+
+    ensure_document_upload(upload)
 
 
 def build_document_object_name(document_id: str, extension: str) -> str:

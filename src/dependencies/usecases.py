@@ -56,8 +56,10 @@ from src.usecases.subscription import (
 
 def get_create_event_usecase(
     event_repository: BeanieEventRepository = Depends(get_event_repository),
+    document_repository: BeanieDocumentRepository = Depends(get_document_repository),
+    storage_service: MinioStorageService = Depends(get_minio_storage_service),
 ) -> CreateEventUseCase:
-    return CreateEventUseCase(event_repository)
+    return CreateEventUseCase(event_repository, document_repository, storage_service)
 
 
 def get_list_all_events_usecase(
@@ -77,14 +79,17 @@ def get_get_event_by_id_usecase(
 def get_update_event_usecase(
     event_repository: BeanieEventRepository = Depends(get_event_repository),
     document_repository: BeanieDocumentRepository = Depends(get_document_repository),
+    storage_service: MinioStorageService = Depends(get_minio_storage_service),
 ) -> UpdateEventUseCase:
-    return UpdateEventUseCase(event_repository, document_repository)
+    return UpdateEventUseCase(event_repository, document_repository, storage_service)
 
 
 def get_delete_event_usecase(
     event_repository: BeanieEventRepository = Depends(get_event_repository),
+    document_repository: BeanieDocumentRepository = Depends(get_document_repository),
+    storage_service: MinioStorageService = Depends(get_minio_storage_service),
 ) -> DeleteEventUseCase:
-    return DeleteEventUseCase(event_repository)
+    return DeleteEventUseCase(event_repository, document_repository, storage_service)
 
 
 def get_create_document_usecase(

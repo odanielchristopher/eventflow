@@ -8,7 +8,7 @@ from beanie import PydanticObjectId
 from fastapi import HTTPException
 from fastapi_pagination import Params, create_page
 
-from src.models.document import Document, DocumentCreate, DocumentUpdate
+from src.models.document import Document, DocumentCreate, DocumentRole, DocumentUpdate
 
 
 class BeanieDocumentRepository:
@@ -38,6 +38,13 @@ class BeanieDocumentRepository:
             return []
 
         return await Document.find({"event_id": {"$in": event_ids}}).sort("-created_at", "-_id").to_list()
+
+    async def get_by_event_id_and_role(
+        self,
+        event_id: str,
+        role: DocumentRole,
+    ) -> Document | None:
+        return await Document.find_one({"event_id": event_id, "role": role})
 
     async def update_size_bytes(self, document: Document, size_bytes: int) -> Document:
         document.size_bytes = size_bytes
