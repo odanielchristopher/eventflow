@@ -1,8 +1,9 @@
+from bson.decimal128 import Decimal128
 from datetime import date as date_type
 from decimal import Decimal
 
 from beanie import Document
-from pydantic import Field
+from pydantic import Field, field_validator
 from pymongo import IndexModel
 
 from src.models.checkin.entity import CheckIn
@@ -15,6 +16,13 @@ class Subscription(Document):
     registered_at: date_type = Field(default_factory=date_type.today)
     event_id: str
     check_in: CheckIn | None = None
+
+    @field_validator("price", mode="before")
+    @classmethod
+    def normalize_price(cls, value):
+        if isinstance(value, Decimal128):
+            return value.to_decimal()
+        return value
 
     class Settings:
         name = "subscriptions"

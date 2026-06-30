@@ -46,6 +46,7 @@ from src.usecases.speaker import (
     UpdateSpeakerUseCase,
 )
 from src.usecases.subscription import (
+    CountEventSubscriptionsCheckInUseCase,
     CreateSubscriptionUseCase,
     DeleteSubscriptionUseCase,
     GetSubscriptionByIdUseCase,
@@ -148,6 +149,16 @@ def get_list_event_subscriptions_usecase(
     subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
 ) -> ListEventSubscriptionsUseCase:
     return ListEventSubscriptionsUseCase(event_repository, subscription_repository)
+
+
+def get_count_event_subscriptions_check_in_usecase(
+    event_repository: BeanieEventRepository = Depends(get_event_repository),
+    subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
+) -> CountEventSubscriptionsCheckInUseCase:
+    return CountEventSubscriptionsCheckInUseCase(
+        event_repository,
+        subscription_repository,
+    )
 
 
 def get_subscription_by_id_usecase(

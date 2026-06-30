@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Response, status
 from fastapi_pagination import Page, Params
 
 from src.dependencies.usecases import (
+    get_count_event_subscriptions_check_in_usecase,
     get_create_subscription_usecase,
     get_delete_subscription_usecase,
     get_list_event_subscriptions_usecase,
@@ -14,11 +15,13 @@ from src.dependencies.usecases import (
 )
 from src.models.subscription import (
     CheckInCreate,
+    SubscriptionCheckInCountRead,
     SubscriptionCreate,
     SubscriptionRead,
     SubscriptionUpdate,
 )
 from src.usecases.subscription import (
+    CountEventSubscriptionsCheckInUseCase,
     CreateSubscriptionUseCase,
     DeleteSubscriptionUseCase,
     GetSubscriptionByIdUseCase,
@@ -57,6 +60,16 @@ async def list_subscriptions(
         registered_from=registered_from,
         registered_to=registered_to,
     )
+
+
+@router.get("/check-ins/count", response_model=SubscriptionCheckInCountRead)
+async def count_subscriptions_with_check_in(
+    event_id: str,
+    usecase: CountEventSubscriptionsCheckInUseCase = Depends(
+        get_count_event_subscriptions_check_in_usecase,
+    ),
+):
+    return await usecase.execute(event_id)
 
 
 @router.get("/{subscription_id}", response_model=SubscriptionRead)

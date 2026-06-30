@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from bson.decimal128 import Decimal128
 from datetime import date as date_type
 from decimal import Decimal
 from typing import Annotated
@@ -18,6 +19,13 @@ class EventBase(BaseModel):
     location: str = Field(max_length=255)
     capacity: int = Field(gt=0)
     sub_price: Decimal = Field(decimal_places=2, max_digits=10)
+
+    @field_validator("sub_price", mode="before")
+    @classmethod
+    def normalize_sub_price(cls, value):
+        if isinstance(value, Decimal128):
+            return value.to_decimal()
+        return value
 
 
 class EventCreate(EventBase):
@@ -49,6 +57,13 @@ class EventUpdate(BaseModel):
     location: str | None = Field(default=None, max_length=255)
     capacity: int | None = Field(default=None, gt=0)
     sub_price: Decimal | None = Field(default=None, decimal_places=2, max_digits=10)
+
+    @field_validator("sub_price", mode="before")
+    @classmethod
+    def normalize_sub_price(cls, value):
+        if isinstance(value, Decimal128):
+            return value.to_decimal()
+        return value
 
     @classmethod
     def as_form(

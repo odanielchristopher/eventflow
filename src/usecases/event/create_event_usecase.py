@@ -82,6 +82,7 @@ class CreateEventUseCase:
             raise
         except Exception as exc:
             await self._cleanup(created_event, created_documents, uploaded_object_names)
+            print(exc)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Could not create event",

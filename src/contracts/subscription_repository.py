@@ -37,6 +37,8 @@ class SubscriptionRepositoryProtocol(Protocol):
         exclude_subscription_id: str | None = None,
     ) -> bool: ...
 
+    async def count_with_check_in(self, event_id: str) -> int: ...
+
     async def update(
         self,
         subscription: Subscription,

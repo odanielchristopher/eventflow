@@ -76,6 +76,14 @@ class SqlModelSubscriptionRepository:
 
         return await Subscription.find_one(filters) is not None
 
+    async def count_with_check_in(self, event_id: str) -> int:
+        return await Subscription.find(
+            {
+                "event_id": event_id,
+                "check_in": {"$ne": None},
+            }
+        ).count()
+
     async def update(
         self,
         subscription: Subscription,
