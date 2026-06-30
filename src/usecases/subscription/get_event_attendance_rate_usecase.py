@@ -4,10 +4,10 @@ from fastapi import HTTPException
 
 from src.contracts.event_repository import EventRepositoryProtocol
 from src.contracts.subscription_repository import SubscriptionRepositoryProtocol
-from src.models.subscription import SubscriptionCheckInCountRead
+from src.models.subscription import EventAttendanceRateRead
 
 
-class CountEventSubscriptionsCheckInUseCase:
+class GetEventAttendanceRateUseCase:
     def __init__(
         self,
         event_repository: EventRepositoryProtocol,
@@ -16,10 +16,9 @@ class CountEventSubscriptionsCheckInUseCase:
         self.event_repository = event_repository
         self.subscription_repository = subscription_repository
 
-    async def execute(self, event_id: str) -> SubscriptionCheckInCountRead:
+    async def execute(self, event_id: str) -> EventAttendanceRateRead:
         event = await self.event_repository.get_by_id(event_id)
         if event is None:
             raise HTTPException(status_code=404, detail="Event not found")
 
-        count = await self.subscription_repository.count_with_check_in_aggregated(event_id)
-        return SubscriptionCheckInCountRead(count=count)
+        return await self.subscription_repository.get_attendance_rate(event_id)

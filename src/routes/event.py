@@ -1,22 +1,28 @@
 from __future__ import annotations
 
+from datetime import date as date_type
+from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Response, UploadFile, status
 from fastapi_pagination import Page, Params
 
 from src.dependencies.usecases import (
+    get_count_events_usecase,
     get_create_event_usecase,
     get_delete_event_usecase,
     get_get_event_by_id_usecase,
+    get_list_events_by_subscription_price_range_usecase,
     get_list_all_events_usecase,
     get_update_event_usecase,
 )
-from src.models.event import EventCreate, EventRead, EventUpdate
+from src.models.event import EventCountRead, EventCreate, EventRead, EventUpdate
 from src.usecases.event import (
+    CountEventsUseCase,
     CreateEventUseCase,
     DeleteEventUseCase,
     GetEventByIdUseCase,
+    ListEventsBySubscriptionPriceRangeUseCase,
     ListAllEventsUseCase,
     UpdateEventUseCase,
 )
@@ -31,6 +37,50 @@ async def get_all_events(
     usecase: ListAllEventsUseCase = Depends(get_list_all_events_usecase),
 ):
     return await usecase.execute(params)
+
+
+@router.get("/analytics/count", response_model=EventCountRead)
+async def count_events(
+    date_from: date_type | None = None,
+    date_to: date_type | None = None,
+    location: str | None = None,
+    title: str | None = None,
+    case_sensitive: bool = False,
+    usecase: CountEventsUseCase = Depends(get_count_events_usecase),
+):
+    return await usecase.execute(
+        date_from=date_from,
+        date_to=date_to,
+        location=location,
+        title=title,
+        case_sensitive=case_sensitive,
+    )
+
+
+@router.get("/analytics/by-subscription-price-range", response_model=Page[EventRead])
+async def list_events_by_subscription_price_range(
+    min_price: Decimal,
+    max_price: Decimal,
+    date_from: date_type | None = None,
+    date_to: date_type | None = None,
+    location: str | None = None,
+    title: str | None = None,
+    case_sensitive: bool = False,
+    params: Params = Depends(),
+    usecase: ListEventsBySubscriptionPriceRangeUseCase = Depends(
+        get_list_events_by_subscription_price_range_usecase
+    ),
+):
+    return await usecase.execute(
+        params,
+        min_price=min_price,
+        max_price=max_price,
+        date_from=date_from,
+        date_to=date_to,
+        location=location,
+        title=title,
+        case_sensitive=case_sensitive,
+    )
 
 
 @router.post("", response_model=EventRead, status_code=status.HTTP_201_CREATED)

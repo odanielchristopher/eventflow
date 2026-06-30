@@ -95,3 +95,7 @@ class EventRead(EventBase):
     @classmethod
     def stringify_id(cls, value) -> str:
         return str(value)
+
+
+class EventCountRead(BaseModel):
+    count: int = Field(ge=0)

@@ -32,9 +32,11 @@ from src.usecases.document import (
     ReplaceDocumentUseCase,
 )
 from src.usecases.event import (
+    CountEventsUseCase,
     CreateEventUseCase,
     DeleteEventUseCase,
     GetEventByIdUseCase,
+    ListEventsBySubscriptionPriceRangeUseCase,
     ListAllEventsUseCase,
     UpdateEventUseCase,
 )
@@ -49,6 +51,7 @@ from src.usecases.subscription import (
     CountEventSubscriptionsCheckInUseCase,
     CreateSubscriptionUseCase,
     DeleteSubscriptionUseCase,
+    GetEventAttendanceRateUseCase,
     GetSubscriptionByIdUseCase,
     ListEventSubscriptionsUseCase,
     UpdateSubscriptionUseCase,
@@ -68,6 +71,22 @@ def get_list_all_events_usecase(
     document_repository: BeanieDocumentRepository = Depends(get_document_repository),
 ) -> ListAllEventsUseCase:
     return ListAllEventsUseCase(event_repository, document_repository)
+
+
+def get_count_events_usecase(
+    event_repository: BeanieEventRepository = Depends(get_event_repository),
+) -> CountEventsUseCase:
+    return CountEventsUseCase(event_repository)
+
+
+def get_list_events_by_subscription_price_range_usecase(
+    event_repository: BeanieEventRepository = Depends(get_event_repository),
+    document_repository: BeanieDocumentRepository = Depends(get_document_repository),
+) -> ListEventsBySubscriptionPriceRangeUseCase:
+    return ListEventsBySubscriptionPriceRangeUseCase(
+        event_repository,
+        document_repository,
+    )
 
 
 def get_get_event_by_id_usecase(
@@ -156,6 +175,16 @@ def get_count_event_subscriptions_check_in_usecase(
     subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
 ) -> CountEventSubscriptionsCheckInUseCase:
     return CountEventSubscriptionsCheckInUseCase(
+        event_repository,
+        subscription_repository,
+    )
+
+
+def get_event_attendance_rate_usecase(
+    event_repository: BeanieEventRepository = Depends(get_event_repository),
+    subscription_repository: SqlModelSubscriptionRepository = Depends(get_subscription_repository),
+) -> GetEventAttendanceRateUseCase:
+    return GetEventAttendanceRateUseCase(
         event_repository,
         subscription_repository,
     )

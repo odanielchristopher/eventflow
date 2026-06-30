@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from datetime import date as date_type
+from decimal import Decimal
 from typing import Any, Protocol
 
 from fastapi_pagination import Params
@@ -48,3 +50,26 @@ class EventRepositoryProtocol(Protocol):
         event: EventEntity,
         banner_img_url: str | None,
     ) -> EventEntity: ...
+
+    async def count_filtered(
+        self,
+        *,
+        date_from: date_type | None = None,
+        date_to: date_type | None = None,
+        location: str | None = None,
+        title: str | None = None,
+        case_sensitive: bool = False,
+    ) -> int: ...
+
+    async def list_by_subscription_price_range(
+        self,
+        params: Params,
+        *,
+        min_price: Decimal,
+        max_price: Decimal,
+        date_from: date_type | None = None,
+        date_to: date_type | None = None,
+        location: str | None = None,
+        title: str | None = None,
+        case_sensitive: bool = False,
+    ) -> Any: ...

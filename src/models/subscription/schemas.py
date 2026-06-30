@@ -56,3 +56,10 @@ class SubscriptionRead(SubscriptionBase):
 
 class SubscriptionCheckInCountRead(BaseModel):
     count: int = Field(ge=0)
+
+
+class EventAttendanceRateRead(BaseModel):
+    event_id: str
+    subscriptions_count: int = Field(ge=0)
+    check_ins_count: int = Field(ge=0)
+    attendance_rate: float = Field(ge=0)

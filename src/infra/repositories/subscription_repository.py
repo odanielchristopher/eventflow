@@ -10,7 +10,12 @@ from beanie import PydanticObjectId
 from fastapi import HTTPException
 from fastapi_pagination import Params, create_page
 
-from src.models.subscription import Subscription, SubscriptionCreate, SubscriptionUpdate
+from src.models.subscription import (
+    EventAttendanceRateRead,
+    Subscription,
+    SubscriptionCreate,
+    SubscriptionUpdate,
+)
 
 
 class SqlModelSubscriptionRepository:
@@ -76,13 +81,59 @@ class SqlModelSubscriptionRepository:
 
         return await Subscription.find_one(filters) is not None
 
-    async def count_with_check_in(self, event_id: str) -> int:
-        return await Subscription.find(
+    async def count_with_check_in_aggregated(self, event_id: str) -> int:
+        pipeline = [
             {
-                "event_id": event_id,
-                "check_in": {"$ne": None},
-            }
-        ).count()
+                "$match": {
+                    "event_id": event_id,
+                    "check_in": {"$ne": None},
+                }
+            },
+            {"$count": "count"},
+        ]
+        result = await Subscription.aggregate(pipeline).to_list()
+        return int(result[0]["count"]) if result else 0
+
+    async def get_attendance_rate(self, event_id: str) -> EventAttendanceRateRead:
+        pipeline = [
+            {"$match": {"event_id": event_id}},
+            {
+                "$group": {
+                    "_id": "$event_id",
+                    "subscriptions_count": {"$sum": 1},
+                    "check_ins_count": {
+                        "$sum": {
+                            "$cond": [
+                                {"$ne": ["$check_in", None]},
+                                1,
+                                0,
+                            ]
+                        }
+                    },
+                }
+            },
+        ]
+        result = await Subscription.aggregate(pipeline).to_list()
+        if not result:
+            return EventAttendanceRateRead(
+                event_id=event_id,
+                subscriptions_count=0,
+                check_ins_count=0,
+                attendance_rate=0,
+            )
+
+        row = result[0]
+        subscriptions_count = int(row["subscriptions_count"])
+        check_ins_count = int(row["check_ins_count"])
+        attendance_rate = (
+            check_ins_count / subscriptions_count if subscriptions_count > 0 else 0
+        )
+        return EventAttendanceRateRead(
+            event_id=event_id,
+            subscriptions_count=subscriptions_count,
+            check_ins_count=check_ins_count,
+            attendance_rate=attendance_rate,
+        )
 
     async def update(
         self,

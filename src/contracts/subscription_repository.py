@@ -8,7 +8,12 @@ from fastapi_pagination import Params
 
 from datetime import date as date_type
 
-from src.models.subscription import Subscription, SubscriptionCreate, SubscriptionUpdate
+from src.models.subscription import (
+    EventAttendanceRateRead,
+    Subscription,
+    SubscriptionCreate,
+    SubscriptionUpdate,
+)
 
 
 class SubscriptionRepositoryProtocol(Protocol):
@@ -37,7 +42,9 @@ class SubscriptionRepositoryProtocol(Protocol):
         exclude_subscription_id: str | None = None,
     ) -> bool: ...
 
-    async def count_with_check_in(self, event_id: str) -> int: ...
+    async def count_with_check_in_aggregated(self, event_id: str) -> int: ...
+
+    async def get_attendance_rate(self, event_id: str) -> EventAttendanceRateRead: ...
 
     async def update(
         self,

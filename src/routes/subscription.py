@@ -9,12 +9,14 @@ from src.dependencies.usecases import (
     get_count_event_subscriptions_check_in_usecase,
     get_create_subscription_usecase,
     get_delete_subscription_usecase,
+    get_event_attendance_rate_usecase,
     get_list_event_subscriptions_usecase,
     get_subscription_by_id_usecase,
     get_update_subscription_usecase,
 )
 from src.models.subscription import (
     CheckInCreate,
+    EventAttendanceRateRead,
     SubscriptionCheckInCountRead,
     SubscriptionCreate,
     SubscriptionRead,
@@ -24,6 +26,7 @@ from src.usecases.subscription import (
     CountEventSubscriptionsCheckInUseCase,
     CreateSubscriptionUseCase,
     DeleteSubscriptionUseCase,
+    GetEventAttendanceRateUseCase,
     GetSubscriptionByIdUseCase,
     ListEventSubscriptionsUseCase,
     UpdateSubscriptionUseCase,
@@ -62,12 +65,26 @@ async def list_subscriptions(
     )
 
 
-@router.get("/check-ins/count", response_model=SubscriptionCheckInCountRead)
+@router.get(
+    "/analytics/check-ins/count",
+    response_model=SubscriptionCheckInCountRead,
+)
 async def count_subscriptions_with_check_in(
     event_id: str,
     usecase: CountEventSubscriptionsCheckInUseCase = Depends(
         get_count_event_subscriptions_check_in_usecase,
     ),
+):
+    return await usecase.execute(event_id)
+
+
+@router.get(
+    "/analytics/attendance-rate",
+    response_model=EventAttendanceRateRead,
+)
+async def get_event_attendance_rate(
+    event_id: str,
+    usecase: GetEventAttendanceRateUseCase = Depends(get_event_attendance_rate_usecase),
 ):
     return await usecase.execute(event_id)
 

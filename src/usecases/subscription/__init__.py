@@ -3,6 +3,9 @@ from src.usecases.subscription.count_event_subscriptions_check_in_usecase import
 )
 from src.usecases.subscription.create_subscription_usecase import CreateSubscriptionUseCase
 from src.usecases.subscription.delete_subscription_usecase import DeleteSubscriptionUseCase
+from src.usecases.subscription.get_event_attendance_rate_usecase import (
+    GetEventAttendanceRateUseCase,
+)
 from src.usecases.subscription.get_subscription_by_id_usecase import GetSubscriptionByIdUseCase
 from src.usecases.subscription.list_event_subscriptions_usecase import (
     ListEventSubscriptionsUseCase,
@@ -13,6 +16,7 @@ __all__ = [
     "CountEventSubscriptionsCheckInUseCase",
     "CreateSubscriptionUseCase",
     "DeleteSubscriptionUseCase",
+    "GetEventAttendanceRateUseCase",
     "GetSubscriptionByIdUseCase",
     "ListEventSubscriptionsUseCase",
     "UpdateSubscriptionUseCase",
